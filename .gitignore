@@ -3,9 +3,9 @@
 */*/__pycache__
 */__pycache__
 *.pyc
-.venv
 reference_material
 .DS_Store
 .python-version
 .hypothesis
 .env
+uv.lock
