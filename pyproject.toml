@@ -1,0 +1,17 @@
+[project]
+name = "kosmos-py"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.13.4",
+    "pyrsistent>=0.20.0",
+    "rich>=15.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "py-spy>=0.4.2",
+    "pytest>=9.0.3",
+]
