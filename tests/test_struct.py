@@ -2,7 +2,7 @@ import os
 import pytest
 from typing import Annotated
 from dataclasses import dataclass
-from kosmos.ether.struct import MapStruct, GetMapStructs, LiminalStructure
+from kosmos.ether.struct import MapStruct, get_map_structs, LiminalStructure
 
 @dataclass
 class MockConfig:
@@ -11,7 +11,7 @@ class MockConfig:
     no_map: str = "no_map_val"
 
 def test_get_map_structs():
-    mapping = GetMapStructs(MockConfig)
+    mapping = get_map_structs(MockConfig)
     assert len(mapping) == 2
     assert "project_id" in mapping
     assert "api_key" in mapping
@@ -27,14 +27,14 @@ def test_liminal_structure_coalesce(monkeypatch):
     struct = LiminalStructure[MockConfig](config)
     
     # Coalesce without environment variables set
-    collapsed = struct.Collapse()
+    collapsed = struct.collapse()
     assert collapsed.project_id == "default_id"
     assert collapsed.api_key == "default_key"
     assert collapsed.no_map == "no_map_val"
     
     # Set env vars and check re-collapse does NOT change values (since has_coalesced is True)
     monkeypatch.setenv("TEST_PROJECT_ID", "new_project_id")
-    collapsed_again = struct.Collapse()
+    collapsed_again = struct.collapse()
     assert collapsed_again.project_id == "default_id"
     
     # Test a fresh structure with env vars set
@@ -43,7 +43,7 @@ def test_liminal_structure_coalesce(monkeypatch):
     monkeypatch.setenv("TEST_PROJECT_ID", "another_id")
     monkeypatch.setenv("TEST_API_KEY", "another_key")
     
-    collapsed2 = struct2.Collapse()
+    collapsed2 = struct2.collapse()
     assert collapsed2.project_id == "another_id"
     assert collapsed2.api_key == "another_key"
     assert collapsed2.no_map == "no_map_val"
@@ -53,5 +53,5 @@ def test_liminal_structure_empty_string_env(monkeypatch):
     struct = LiminalStructure[MockConfig](config)
     
     monkeypatch.setenv("TEST_PROJECT_ID", "")
-    collapsed = struct.Collapse()
+    collapsed = struct.collapse()
     assert collapsed.project_id == ""

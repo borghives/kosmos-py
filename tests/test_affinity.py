@@ -8,13 +8,13 @@ def test_purpose_affinity_values():
     assert PurposeAffinity.Observer == 3
 
 def test_purpose_affinity_to_string():
-    assert PurposeAffinity.Unknown.ToString() == "Unknown"
-    assert PurposeAffinity.Admin.ToString() == "Admin"
-    assert PurposeAffinity.Creator.ToString() == "Creator"
-    assert PurposeAffinity.Observer.ToString() == "Observer"
+    assert PurposeAffinity.Unknown.to_string() == "Unknown"
+    assert PurposeAffinity.Admin.to_string() == "Admin"
+    assert PurposeAffinity.Creator.to_string() == "Creator"
+    assert PurposeAffinity.Observer.to_string() == "Observer"
     # Test undefined behavior (fallback) using class method call
     # pyrefly: ignore [bad-argument-type]
-    assert PurposeAffinity.ToString(99) == "Undefined"
+    assert PurposeAffinity.to_string(99) == "Undefined"
 
 def test_purpose_affinity_from_string():
     assert PurposeAffinity.from_string("Unknown") == PurposeAffinity.Unknown

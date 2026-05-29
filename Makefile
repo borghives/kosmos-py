@@ -1,4 +1,4 @@
-.PHONY: all sync update tag clean commit stage submit
+.PHONY: all sync update tag clean commit stage submit test
 
 all: 
 	@echo "Please specify a command: make init, make update, etc."
@@ -19,6 +19,6 @@ commit:
 	gca && git push
 
 test:
-	@echo "coming soon..."
+	@uv run pytest
 
 submit: sync update test stage commit 

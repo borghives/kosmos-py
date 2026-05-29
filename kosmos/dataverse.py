@@ -7,11 +7,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 _lock = threading.Lock()
-_mongo_observers : dict[PurposeAffinity, mongo.Dataverse] = {} 
-_summon_once : dict[PurposeAffinity, bool] = {}   
+_mongo_observers: dict[PurposeAffinity, mongo.Dataverse] = {} 
+_summon_once: dict[PurposeAffinity, bool] = {}   
 
 
-def SummonMongo(purpose : PurposeAffinity) -> mongo.Dataverse:
+def summon_mongo(purpose: PurposeAffinity) -> mongo.Dataverse:
     if _summon_once.get(purpose, False):
         return _mongo_observers[purpose]
 
@@ -23,9 +23,9 @@ def SummonMongo(purpose : PurposeAffinity) -> mongo.Dataverse:
 
     
 
-def MustHaveObserverClient() :
-    data = SummonMongo(mongo.PurposeAffinity.Observer)
-    if data == None:
+def must_have_observer_client():
+    data = summon_mongo(mongo.PurposeAffinity.Observer)
+    if data is None:
         raise Exception("Failed to summon mongo observer client")
     
     client = data.sync_client()

@@ -7,7 +7,7 @@ class MapStruct:
         self.key = key
         self.permeate = permeate
 
-def GetMapStructs(cls) -> Dict[str, MapStruct]:
+def get_map_structs(cls) -> Dict[str, MapStruct]:
     type_hints = get_type_hints(cls, include_extras=True)
     map_structs = {}
     for field_name in type_hints:
@@ -21,16 +21,18 @@ def GetMapStructs(cls) -> Dict[str, MapStruct]:
 
 @dataclass
 class LiminalStructure[T]:
-    constants : T
-    has_coalesced : bool = False
-    def Coalesce(self):
-        for key, map_struct in GetMapStructs(type(self.constants)).items():
+    constants: T
+    has_coalesced: bool = False
+    
+    def coalesce(self):
+        for key, map_struct in get_map_structs(type(self.constants)).items():
             if os.getenv(map_struct.key) is not None:
                 setattr(self.constants, key, os.getenv(map_struct.key))
     
-    def Collapse(self) -> T:
+    def collapse(self) -> T:
         if not self.has_coalesced:
-            self.Coalesce()
+            self.coalesce()
             self.has_coalesced = True
         return self.constants
+
         

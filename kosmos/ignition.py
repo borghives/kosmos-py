@@ -1,22 +1,23 @@
-from kosmos.dataverse import MustHaveObserverClient
+from kosmos.dataverse import must_have_observer_client
 from dotenv import load_dotenv
 from kosmos import ether
 import logging
 logger = logging.getLogger(__name__)
 
 
-def IgniteBase(*sources : str):
-    for source in sources :
+def ignite_base(*sources: str):
+    for source in sources:
         load_dotenv(source)
 
-def Ignite(*sources : str):
-    for source in sources :
+def ignite(*sources: str):
+    for source in sources:
         load_dotenv(source)
     
-    project_id =ether.UniversalConstants.Collapse().ProjectID
-    if project_id == "" :
+    project_id = ether.UniversalConstants.collapse().project_id
+    if project_id == "":
         logger.fatal("Fatal: Failed to ignite universal constants: ProjectID")
         raise Exception("Fatal: Failed to ignite universal constants: ProjectID")
 
-    MustHaveObserverClient()
+    must_have_observer_client()
+
         
