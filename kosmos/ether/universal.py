@@ -3,8 +3,6 @@ from kosmos.ether.struct import MapStruct
 from typing import  Annotated
 from dataclasses import dataclass
 
-
-
 @dataclass
 class UniversalConstants:
     project_id: Annotated[str, MapStruct("PROJECT_ID", permeate=True)] = ""
@@ -22,6 +20,6 @@ class UniversalConstants:
     def Collapse() -> 'UniversalConstants':
         return universal_constants.Collapse()
     
-universal_constants = LiminalStructure[UniversalConstants](constants=UniversalConstants())
+universal_constants = LiminalStructure[UniversalConstants](UniversalConstants())
     
 

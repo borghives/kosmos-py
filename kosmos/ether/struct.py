@@ -1,8 +1,5 @@
-from typing import Optional
 from typing import get_type_hints, get_origin, get_args, Annotated, Dict
-from kosmos.ether import constant
 from dataclasses import dataclass
-from dotenv import load_dotenv
 import os
 
 class MapStruct:
@@ -28,7 +25,7 @@ class LiminalStructure[T]:
     has_coalesced : bool = False
     def Coalesce(self):
         for key, map_struct in GetMapStructs(type(self.constants)).items():
-            if os.getenv(map_struct.key):
+            if os.getenv(map_struct.key) is not None:
                 setattr(self.constants, key, os.getenv(map_struct.key))
     
     def Collapse(self) -> T:

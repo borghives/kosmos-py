@@ -1,7 +1,7 @@
 import kosmos
 def main():
     print("Hello from kosmos-py!")
-    kosmos.IgniteBase("test.env")
+    kosmos.Ignite("test.env")
     print(kosmos.ether.UniversalConstants.Collapse().ProjectID)
 
 

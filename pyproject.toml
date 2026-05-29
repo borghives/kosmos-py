@@ -6,7 +6,10 @@ authors = [{ name = "Ed Dao", email = "ed@intellogic.com" }]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "google-cloud-resource-manager>=1.17.0",
+    "google-cloud-secret-manager>=2.28.0",
     "pydantic>=2.13.4",
+    "pymongo>=4.17.0",
     "pyrefly>=1.0.0",
     "pyrsistent>=0.20.0",
     "python-dotenv>=1.2.2",
