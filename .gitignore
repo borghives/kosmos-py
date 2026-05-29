@@ -9,3 +9,4 @@ reference_material
 .hypothesis
 .env
 uv.lock
+.pytest_cache
