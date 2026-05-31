@@ -1,7 +1,9 @@
-from kosmos.mongo.client import collapse_uri_for, PurposeAffinity
+import threading
+from .client import PurposeAffinity, DbClientFactory, collapse_uri_for
+
 from pymongo import MongoClient
 from pymongo import AsyncMongoClient
-from kosmos.mongo.client import DbClientFactory
+
 from dataclasses import dataclass
 
 @dataclass
@@ -22,3 +24,17 @@ class Dataverse:
             client_factory=DbClientFactory(uri),
             purpose=purpose
         )
+
+_lock = threading.Lock()
+_mongo_observers: dict[PurposeAffinity, Dataverse] = {} 
+_summon_once: dict[PurposeAffinity, bool] = {}   
+
+def summon_mongo(purpose: PurposeAffinity) -> Dataverse:
+    if _summon_once.get(purpose, False):
+        return _mongo_observers[purpose]
+
+    with _lock:
+        if not _summon_once.get(purpose, False):
+            _mongo_observers[purpose] = Dataverse.create_for(purpose)
+            _summon_once[purpose] = True
+        return _mongo_observers[purpose]

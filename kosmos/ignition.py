@@ -1,4 +1,4 @@
-from kosmos.dataverse import must_have_observer_client
+from .space import must_have_observer_client
 from dotenv import load_dotenv
 from kosmos import ether
 import logging

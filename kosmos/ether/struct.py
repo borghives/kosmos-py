@@ -35,4 +35,5 @@ class LiminalStructure[T]:
             self.has_coalesced = True
         return self.constants
 
+
         
