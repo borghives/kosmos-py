@@ -15,6 +15,7 @@ import polars as pl
 
 @km.declare_persist_db(db_name="test_db", collection_name="test_collection", version=1)
 class TestModel(PersistableBase):
+    __test__ = False
     name: str
     value: int
     link_id: ObjectId | None = None

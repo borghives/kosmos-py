@@ -26,20 +26,15 @@ class MongoCollection:
         collection_name = self.meta_state.data_name
 
         if self.meta_state.version is not None:
-            collection_name += "_v" + str(self.meta_state.version)
+            collection_name += f"_v{self.meta_state.version}"
 
         if UniversalConstants.collapse().is_test_mode:
             collection_name += "_test"
         
-        client = summon_mongo(PurposeAffinity.Observer).sync_client()
-        database = client[database_name]
-        
-        self._sync_collection = database[collection_name]
+        mongo_data = summon_mongo(PurposeAffinity.Observer)
         if with_async:
-            client = summon_mongo(PurposeAffinity.Observer).async_client()
-            self._async_collection = client[database_name][collection_name]
+            self._async_collection = mongo_data.async_client()[database_name][collection_name]
             return self._async_collection
         else:
-            client = summon_mongo(PurposeAffinity.Observer).sync_client()
-            self._sync_collection = client[database_name][collection_name]
+            self._sync_collection = mongo_data.sync_client()[database_name][collection_name]
             return self._sync_collection

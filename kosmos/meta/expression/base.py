@@ -68,7 +68,7 @@ class Expression(ABC):
         
         return driver.marshal(self.repr_value) if driver else self.repr_value
     
-    def is_empty(self):
+    def is_empty(self) -> bool:
         value = self.repr_value
         if value is None:
             return True
@@ -81,6 +81,9 @@ class Expression(ABC):
     
         if isinstance(value, Expression):
             return value.is_empty()
+        
+        if not hasattr(value, "__len__"):
+            return False
         
         return len(value) == 0
 
@@ -142,13 +145,13 @@ class LiteralInput(Expression):
         transformers = driver.get_transformers(self.linked_field_name)
         return coalesce(self.repr_value, transformers)
 
-def to_expr(input: Expression | str | int) -> Expression:
-    if isinstance(input, str):
-        return FieldPath(input)
-    if isinstance(input, int):
-        return LiteralInput(input)
-    assert isinstance(input, Expression)
-    return input
+def to_expr(expr_input: Expression | str | int) -> Expression:
+    if isinstance(expr_input, str):
+        return FieldPath(expr_input)
+    if isinstance(expr_input, int):
+        return LiteralInput(expr_input)
+    assert isinstance(expr_input, Expression)
+    return expr_input
 
 class OpExpression(Expression):
     @classmethod

@@ -15,30 +15,16 @@ class PurposeAffinity(IntEnum):
     Observer = 3
 
     def to_string(self) -> str:
-        if self == PurposeAffinity.Unknown:
-            return "Unknown"
-        elif self == PurposeAffinity.Admin:
-            return "Admin"
-        elif self == PurposeAffinity.Creator:
-            return "Creator"
-        elif self == PurposeAffinity.Observer:
-            return "Observer"
-        else:
+        if not isinstance(self, PurposeAffinity):
             return "Undefined"
+        return self.name
     
-    @staticmethod
-    def from_string(s: str) -> 'PurposeAffinity':
-        s = s.strip()
-        if s == "Unknown":
-            return PurposeAffinity.Unknown
-        elif s == "Admin":
-            return PurposeAffinity.Admin
-        elif s == "Creator":
-            return PurposeAffinity.Creator
-        elif s == "Observer":
-            return PurposeAffinity.Observer
-        else:
-            return PurposeAffinity.Unknown
+    @classmethod
+    def from_string(cls, s: str) -> 'PurposeAffinity':
+        try:
+            return cls[s.strip()]
+        except KeyError:
+            return cls.Unknown
 
 
 def mask_mongo_uri(uri: str) -> str:
@@ -63,13 +49,11 @@ def mask_mongo_uri(uri: str) -> str:
     host_and_path = remainder[end_of_creds:]  # Includes the '@'
 
     # 3. Split User and Password
-    user_auth = creds.split(":", 2)
+    user_auth = creds.split(":", 1)
     if len(user_auth) < 2:
-        return uri  # Only user, no password no need to mask
+        return uri  # Only user, no password; no need to mask
 
     user = user_auth[0]
-    _ = user_auth[1]
-
     return f"{scheme}://{user}:****{host_and_path}"
 
 

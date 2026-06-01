@@ -17,12 +17,14 @@ def setup_kosmos():
 
 @km.declare_persist_db(db_name="test_db", collection_name="test_collection", version=1)
 class TestModel(PersistableBase):
+    __test__ = False
     name: str
     value: int
     link_id: ObjectId | None = None
 
 @km.declare_persist_db(db_name="test_db", collection_name="test_collection", version=1)
 class TestModelWithLinkId(Persistable):
+    __test__ = False
     name: str
     value: int
     link_id: ObjectId | None = None
@@ -30,6 +32,7 @@ class TestModelWithLinkId(Persistable):
 
 @km.declare_persist_db(collection_name="test_inc_collection", db_name="test_db")
 class TestIncModel(Persistable):
+    __test__ = False
     test_field: str
     counter: km.IncrCounter  = Field(description="An incrementing integer counter", default=km.ZeroCounter)
     counter2: km.IncrCounter = Field(description="An incrementing integer counter", default=km.ZeroCounter)

@@ -32,14 +32,13 @@ class PersistableBase(Model):
             is first inserted into the database.
     """
 
-    _state : ModelState = ModelState.Unset
+    _state: ModelState = ModelState.Unset
 
     @classmethod
     def get_meta_state(cls) -> MetaState:
         retval = getattr(cls, "_meta_state", None)
-        assert(retval is not None)
+        assert retval is not None, "MetaState has not been declared for this model. Did you forget to use @declare_persist_db?"
         return retval
-
 
     # --- Instance State and Helpers ---
     @property
@@ -55,38 +54,37 @@ class PersistableBase(Model):
     # Collapsible interface
     def self_scope(self) -> dict:
         """
-        Returns a filter to find the current document.  This filter MUST be unique to the document.
+        Returns a filter to find the current document. This filter MUST be unique to the document.
         Defaults to using the `_id` field. Can be overridden to use other fields.
 
         Returns:
             dict: A filter expression for finding the document.
         """
+        return {}  # default no scope which should direct to use _id to scope.
 
-        return {} #default no scope which should direct to use _id to scope.
-
-    #An entity must be Collapse by an observer and Decohere the interaction's ripple in order to exists in a known state.
-    #Failure to complete Collapse AND Decohere flow will put the state of the object in an UNKNOWN / INBETWEEN state.
+    # An entity must be collapsed by an observer and decohere the interaction's ripple in order to exist in a known state.
+    # Failure to complete the Collapse AND Decohere flow will put the state of the object in an UNKNOWN / INBETWEEN state.
 
     def create_ripple(self) -> Ripple:
         """Collapses the model's state"""
         self_state = self._state
-        if (self_state == ModelState.Unset):
+        if self_state == ModelState.Unset:
             # Unset -> Transition
             self._state = ModelState.Transition
             ripple_state = RippleState.FromUnknown
-            if self.has_id() :
+            if self.has_id():
                 ripple_state = RippleState.FromKnown
             return Ripple(state=ripple_state)
-        elif (self_state == ModelState.Material):
+        elif self_state == ModelState.Material:
             # Material -> Transition
             return Ripple(state=RippleState.FromKnown)
         
-        return Ripple(state=RippleState.Unobservable) # A model is unobservable in transition state
+        return Ripple(state=RippleState.Unobservable)  # A model is unobservable in transition state
         
     def collapse(self) -> Ripple:
         ripple = self.create_ripple()
 
-        if (ripple.state == RippleState.Unobservable):
+        if ripple.state == RippleState.Unobservable:
             return ripple
 
         ripple.set_id(self.id)
@@ -116,8 +114,8 @@ class PersistableBase(Model):
         ripple.set_doc(doc)
         return ripple
 
-    def decohere(self, ripple : Ripple):
-        # Do Nothing on an unobservable ripple.  We should not be here Decohering an unobservable ripple.
+    def decohere(self, ripple: Ripple) -> None:
+        # Do nothing on an unobservable ripple. We should not be here decohering an unobservable ripple.
         if ripple.state == RippleState.Unobservable:
             raise ValueError("Failed Decoherence: ripple state is unobservable.")
 
@@ -138,9 +136,9 @@ class PersistableBase(Model):
                 current_value = getattr(self, field)
                 setattr(self, field, current_value.collapse())
         
-        id = ripple.get_final_id()
-        if id is not None:
-            self.id = id
+        final_id = ripple.get_final_id()
+        if final_id is not None:
+            self.id = final_id
         
 
 class Persistable(PersistableBase):
