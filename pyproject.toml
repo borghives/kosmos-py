@@ -9,7 +9,8 @@ dependencies = [
     "arrow>=1.4.0",
     "google-cloud-resource-manager>=1.17.0",
     "google-cloud-secret-manager>=2.28.0",
-    "loom",
+    "pandas>=3.0.3",
+    "polars>=1.41.2",
     "pyarrow>=22.0.0",
     "pydantic>=2.13.4",
     "pymongo>=4.17.0",
@@ -29,9 +30,6 @@ project-includes = [
     "**/*.ipynb",
 ]
 
-[tool.uv.sources]
-loom = { path = "../loom", editable = true }
-
 [project.urls]
 Homepage = "https://github.com/borghives/kosmos-py"
 Repository = "https://github.com/borghives/kosmos-py"
@@ -42,6 +40,7 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "faker>=40.19.1",
     "py-spy>=0.4.2",
     "pytest>=9.0.3",
 ]

@@ -1,0 +1,27 @@
+import random
+from faker import Faker
+from tests.performance_test_model import PerformanceTestModel
+import kosmos as km
+# 2. Create script to generate and insert data
+def generate_data(num_records: int):
+    fake = Faker()
+    records = [
+        PerformanceTestModel(
+            name=fake.name(),
+            value=random.random() * 1000,
+            value2=random.random() * 1000,
+            date=fake.date_time_this_decade(),
+            notes=fake.text(),
+        ).dump_doc() for _ in range(num_records)
+    ]
+    recorder = km.MongoRecorder(PerformanceTestModel)
+    # Use a direct pymongo client for bulk insert for speed
+    collection = recorder.get_collection()
+    # Clear existing data
+    collection.delete_many({})
+    collection.insert_many(records)
+    print(f"Inserted {num_records} records into {collection.full_name}")
+
+if __name__ == "__main__":
+    km.ignite("test.env")
+    generate_data(200_000)
