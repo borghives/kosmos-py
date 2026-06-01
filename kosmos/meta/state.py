@@ -10,6 +10,7 @@ class MetaState:
     branch_name : str
     field_map   : dict[str, FieldInfo] = field(default_factory=dict)
     version     : Optional[int] = None
+    is_blob     : bool = field(default=False)
 
     def resolve_name(self, name: str) -> str:
         """
@@ -35,7 +36,8 @@ class MetaState:
 def declare_persist_db(
     collection_name: str,
     db_name: str,
-    version: Optional[int] = None
+    version: Optional[int] = None,
+    is_blob: bool = False
 ):
     """
     A class decorator that declares how a model should be persisted to
@@ -44,6 +46,8 @@ def declare_persist_db(
     Args:
         collection_name (str): The name of the MongoDB collection.
         db_name (str): The name of the MongoDB database.
+        version (Optional[int]): The version of the collection.
+        is_blob (bool): Whether the collection is a blob file collection.
     """
 
     def decorator(cls):
@@ -51,7 +55,8 @@ def declare_persist_db(
             data_name=collection_name,
             branch_name=db_name,
             field_map=cls.model_fields,
-            version=version
+            version=version,
+            is_blob=is_blob
         )
         return cls
 

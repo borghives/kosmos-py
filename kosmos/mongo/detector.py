@@ -1,4 +1,5 @@
 
+from kosmos.matter.blob import PersistableBlob
 from pymongo.asynchronous.collection import AsyncCollection
 from bson import ObjectId
 from enum import StrEnum
@@ -323,8 +324,7 @@ class MongoDetector[T: Detectable](MongoCollection):
         return aggregate_polars_all(collection, pipeline=self._get_pipeline_expr(), schema=Schema(schema) if schema else None)
 
     async def exec_agg_async(self, post_agg: Optional[AggregationStages] = None):
-        collection = self.get_collection(with_async=True)
-        assert isinstance(collection, AsyncCollection)
+        collection = self.get_collection_async()
         return await collection.aggregate(self._get_pipeline_expr(post_agg))
 
     async def load_agg_async(self, post_agg: Optional[AggregationStages] = None):
@@ -410,3 +410,19 @@ class GroupDetector[T: Detectable]:
         
         return self._base_directive
 
+def dectect[T: Detectable](obj: Type[T]):
+    return MongoDetector[T](obj)
+
+def open_blob(file :PersistableBlob):
+    fs = MongoCollection(type(file).get_meta_state()).get_gridfs()
+    if file.has_id():
+        return fs.open_download_stream(file.collapse_id())
+    else:
+        return fs.open_download_stream_by_name(file.filename, revision=-1)
+
+async def open_blob_async(file :PersistableBlob):
+    fs = MongoCollection(type(file).get_meta_state()).get_gridfs_async()
+    if file.has_id():
+        return await fs.open_download_stream(file.collapse_id())
+    else:
+        return await fs.open_download_stream_by_name(file.filename, revision=-1)

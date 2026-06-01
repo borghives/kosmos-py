@@ -1,12 +1,11 @@
 from pydantic import Field
 from enum import IntEnum
 
-
 from kosmos.meta.util import coalesce
 from kosmos.meta.state import MetaState
 from kosmos.meta.model import Model
-from kosmos.matter.observable import RippleState, Ripple
 from kosmos.meta.annotation import TimeInserted, TimeUpdated,CoalesceOnInsert, CoalesceOnIncr, RefreshOnSet
+from .ripple import RippleState, Ripple
 
 class ModelState(IntEnum):
     Unset = 0
