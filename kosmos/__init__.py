@@ -8,7 +8,7 @@ from kosmos import mongo
 from kosmos.meta.state import declare_persist_db
 from kosmos.meta.atomic import IncrCounter, IntCounter, ZeroCounter
 from kosmos.meta.annotation import RefreshOnSet, CoalesceOnInsert
-from kosmos.matter.persistable import PersistableBase, Persistable
+from kosmos.matter.persistable import ParticleBase, Persistable
 from kosmos.mongo import client
 from kosmos.mongo.recorder import record, record_async, MongoRecorder
 from kosmos.mongo.detector import MongoDetector
@@ -26,7 +26,7 @@ __all__ = [
     "client",
     "MongoDetector",
     "declare_persist_db",
-    "PersistableBase",
+    "ParticleBase",
     "Persistable",
     "IncrCounter",
     "RefreshOnSet",

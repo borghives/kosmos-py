@@ -2,7 +2,7 @@ from polars import string_cache
 from pymongo.errors import BulkWriteError
 from pydantic import Field
 from bson import ObjectId
-from kosmos.matter.persistable import PersistableBase, Persistable
+from kosmos.matter.persistable import ParticleBase, Persistable
 from datetime import datetime, timezone
 from pymongo.collection import Collection
 import pytest
@@ -16,7 +16,7 @@ def setup_kosmos():
     km.ignite("test.env")
 
 @km.declare_persist_db(db_name="test_db", collection_name="test_collection", version=1)
-class TestModel(PersistableBase):
+class TestModel(ParticleBase):
     __test__ = False
     name: str
     value: int

@@ -13,9 +13,9 @@ class ModelState(IntEnum):
     Transition = 1
     Material = 2
 
-class PersistableBase(Model):
+class ParticleBase(Model):
     """
-    A mixin for Pydantic models providing MongoDB persistence capabilities.
+    Pydantic models providing MongoDB persistence capabilities.
 
     This class extends `Model` to offer a suite of methods for
     database interactions, including creating, reading, and querying documents.
@@ -62,7 +62,7 @@ class PersistableBase(Model):
         """
         return {}  # default no scope which should direct to use _id to scope.
 
-    # An entity must be collapsed by an observer and decohere the interaction's ripple in order to exist in a known state.
+    # A particle must be collapsed by an observer and decohere the interaction's ripple in order to exist in a known state.
     # Failure to complete the Collapse AND Decohere flow will put the state of the object in an UNKNOWN / INBETWEEN state.
 
     def create_ripple(self) -> Ripple:
@@ -77,6 +77,7 @@ class PersistableBase(Model):
             return Ripple(state=ripple_state)
         elif self_state == ModelState.Material:
             # Material -> Transition
+            self._state = ModelState.Transition
             return Ripple(state=RippleState.FromKnown)
         
         return Ripple(state=RippleState.Unobservable)  # A model is unobservable in transition state
@@ -141,7 +142,7 @@ class PersistableBase(Model):
             self.id = final_id
         
 
-class Persistable(PersistableBase):
+class Persistable(ParticleBase):
     updated_time: TimeUpdated = Field(
         description="Timestamp of the last update.", default=None
     )
