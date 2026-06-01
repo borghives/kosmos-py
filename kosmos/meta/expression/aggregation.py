@@ -248,6 +248,7 @@ class AggregationStages(Expression):
         if isinstance(path, str):
             name = path[1:] if path.startswith("$") else path
             path = FieldPath(name)
+
         return AggregationStages(self.stages.append(freeze({"$unwind": path})))
 
     def lookup(
