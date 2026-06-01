@@ -1,11 +1,42 @@
 
 
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Union, get_origin, get_args, Annotated, List, Set
+import types
+from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
 from kosmos.meta.util import coalesce
 from kosmos.meta.annotation import NormalizeQueryInput
+
+def get_model_fields_from_annotation(annotation: Any) -> Optional[dict]:
+    if annotation is None:
+        return None
+    # Handle Annotated
+    if get_origin(annotation) is Annotated:
+        annotation = get_args(annotation)[0]
+    
+    # Handle Union/Optional
+    origin = get_origin(annotation)
+    if origin is Union or (hasattr(types, "UnionType") and origin is types.UnionType):
+        for arg in get_args(annotation):
+            if arg is not type(None):
+                fields = get_model_fields_from_annotation(arg)
+                if fields:
+                    return fields
+    
+    # Handle List/Sequence/Set/Dict/etc.
+    if origin in (list, set, dict, List, Set, Dict):
+        args = get_args(annotation)
+        if args:
+            target = args[-1]
+            fields = get_model_fields_from_annotation(target)
+            if fields:
+                return fields
+                
+    if isinstance(annotation, type) and issubclass(annotation, BaseModel):
+        return annotation.model_fields
+    return None
 
 class ExpressionDriver:
     """
@@ -21,13 +52,40 @@ class ExpressionDriver:
         self.model_fields = model_fields
 
     def get_alias(self, field_name: str) -> str:
-        field_info = self.model_fields.get(field_name)
-        if field_info is None:
-            return field_name
-        return field_info.alias or field_name
+        parts = field_name.split(".")
+        resolved_parts = []
+        current_fields = self.model_fields
+        
+        for part in parts:
+            if not current_fields:
+                resolved_parts.append(part)
+                continue
+            
+            field_info = current_fields.get(part)
+            if field_info is None:
+                resolved_parts.append(part)
+                current_fields = None
+            else:
+                alias = field_info.alias or part
+                resolved_parts.append(alias)
+                current_fields = get_model_fields_from_annotation(field_info.annotation)
+                
+        return ".".join(resolved_parts)
     
     def get_transformers(self, field_name: str) -> list:
-        field_info = self.model_fields.get(field_name)
+        parts = field_name.split(".")
+        current_fields = self.model_fields
+        field_info = None
+        
+        for part in parts:
+            if not current_fields:
+                field_info = None
+                break
+            field_info = current_fields.get(part)
+            if field_info is None:
+                break
+            current_fields = get_model_fields_from_annotation(field_info.annotation)
+            
         if field_info is None:
             return []
         metadata = field_info.metadata
@@ -40,6 +98,10 @@ class ExpressionDriver:
             return {self.marshal(k): self.marshal(v) for k, v in value.items()}
         if isinstance(value, list):
             return [self.marshal(v) for v in value if v is not None]
+        if isinstance(value, tuple):
+            return tuple(self.marshal(v) for v in value if v is not None)
+        if isinstance(value, set):
+            return {self.marshal(v) for v in value if v is not None}
         return value
 
 class Expression(ABC):
@@ -145,13 +207,12 @@ class LiteralInput(Expression):
         transformers = driver.get_transformers(self.linked_field_name)
         return coalesce(self.repr_value, transformers)
 
-def to_expr(expr_input: Expression | str | int) -> Expression:
+def to_expr(expr_input: Any) -> Expression:
+    if isinstance(expr_input, Expression):
+        return expr_input
     if isinstance(expr_input, str):
         return FieldPath(expr_input)
-    if isinstance(expr_input, int):
-        return LiteralInput(expr_input)
-    assert isinstance(expr_input, Expression)
-    return expr_input
+    return LiteralInput(expr_input)
 
 class OpExpression(Expression):
     @classmethod
@@ -234,8 +295,8 @@ class FieldSpecification (MapExpression):
 
 
 class GroupExpression(Expression):
-    def __init__(self, key: Expression | None):
-        self.key = key
+    def __init__(self, key: Any):
+        self.key = to_expr(key) if key is not None else None
         self.accumulators : Optional[FieldSpecification] = None
 
     @property
@@ -252,21 +313,19 @@ class GroupExpression(Expression):
         self.accumulators = accumulators
         return self
     
-def combine_field_specifications(*specifications: FieldSpecification | dict):
-    combined: Optional[FieldSpecification | dict] = None
+def combine_field_specifications(*specifications: FieldSpecification | dict) -> Optional[FieldSpecification]:
+    combined_dict = {}
     for specification in specifications:
-        if combined is None:
-            combined = specification
+        if specification is None:
+            continue
+        if isinstance(specification, FieldSpecification):
+            val = specification.repr_value
+        elif isinstance(specification, dict):
+            val = specification
         else:
-            if isinstance(combined, dict) and isinstance(specification, FieldSpecification):
-                combined = FieldSpecification(combined)
-            
-            if isinstance(combined, FieldSpecification):
-               if isinstance(specification, dict):
-                   specification = FieldSpecification(specification)
-               combined |= specification
-            elif isinstance(combined, dict):
-                assert isinstance(specification, dict)
-                combined |= specification
+            raise TypeError(f"Unsupported specification type: {type(specification)}")
+        
+        assert isinstance(val, dict)
+        combined_dict.update(val)
                     
-    return combined
+    return FieldSpecification(combined_dict) if combined_dict else None

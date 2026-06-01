@@ -20,7 +20,7 @@ Example:
     mongo_pipeline = pipeline.pipeline()
 """
 from typing import List, Optional
-from kosmos.meta.expression.base import Expression, GroupExpression, FieldSpecification
+from kosmos.meta.expression.base import Expression, GroupExpression, FieldSpecification, FieldName, FieldPath
 from kosmos.meta.expression.sort import SortOp
 from kosmos.meta.expression.filter import QueryPredicates
 from pyrsistent import pvector, PVector, PMap, freeze, thaw
@@ -179,18 +179,20 @@ class AggregationStages(Expression):
         """
         return AggregationStages(self.stages.append(freeze({"$addFields": fields})))
 
-    def sort(self, sort: SortOp) -> "AggregationStages":
+    def sort(self, sort: SortOp | dict) -> "AggregationStages":
         """
         Adds a `$sort` stage to the pipeline.
 
         Sorts all input documents and returns them to the pipeline in sorted order.
 
         Args:
-            sort (SortOp): The `SortOp` object specifying the sort order.
+            sort (SortOp | dict): The sort specification.
 
         Returns:
             Aggregation: The `Aggregation` object for chaining.
         """
+        if isinstance(sort, dict):
+            sort = SortOp(sort)
 
         if sort.is_empty():
             return self
@@ -230,7 +232,7 @@ class AggregationStages(Expression):
         """
         return AggregationStages(self.stages.append(freeze({"$skip": skip})))
 
-    def unwind(self, path: str) -> "AggregationStages":
+    def unwind(self, path: str | FieldPath) -> "AggregationStages":
         """
         Adds a `$unwind` stage to the pipeline.
 
@@ -238,11 +240,14 @@ class AggregationStages(Expression):
         document for each element.
 
         Args:
-            path (str): The path to an array field to unwind (e.g., `"$items"`).
+            path (str | FieldPath): The path to an array field to unwind (e.g., `"$items"`).
 
         Returns:
             Aggregation: The `Aggregation` object for chaining.
         """
+        if isinstance(path, str):
+            name = path[1:] if path.startswith("$") else path
+            path = FieldPath(name)
         return AggregationStages(self.stages.append(freeze({"$unwind": path})))
 
     def lookup(
@@ -269,7 +274,7 @@ class AggregationStages(Expression):
             {
                 "$lookup": {
                     "from": foreignCollection,
-                    "localField": localField,
+                    "localField": FieldName(localField),
                     "foreignField": foreignField,
                     "as": toField,
                 }

@@ -13,7 +13,9 @@ class QueryPredicates(Expression):
 
     ref: https://www.mongodb.com/docs/manual/reference/mql/query-predicates/
     """
-    def __init__(self, query_predicate: Optional[Union[dict, QueryOpExpression]] = None) -> None:
+    def __init__(self, query_predicate: Optional[Union[dict, QueryOpExpression, "QueryPredicates"]] = None) -> None:
+        if isinstance(query_predicate, QueryPredicates):
+            query_predicate = query_predicate._value
         assert query_predicate is None or isinstance(query_predicate, (dict, QueryOpExpression))
         self._value = query_predicate if query_predicate is not None else {}
 

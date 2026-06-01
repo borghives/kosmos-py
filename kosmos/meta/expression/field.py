@@ -37,21 +37,6 @@ from enum import Enum
 from typing import Optional
 
 from kosmos.meta.expression.op import ToInt, DateToString, sanitize_number, Abs, Add, Subtract
-from kosmos.meta.expression.query import (
-    All,
-    Exists,
-    In,
-    Gte,
-    Lte,
-    Gt, 
-    Lt,
-    Ne,
-    Eq,
-    NotAll,
-    NotIn,
-    TimeQuery,
-    QueryOpExpression,
-)
 from kosmos.time.timeframing import TimeFrame
 
 class QueryableField:
@@ -107,7 +92,7 @@ class QueryableField:
 
     def __eq__(self, input) -> QueryPredicates: # type: ignore[override]
         if input is None:
-            return QueryPredicates()
+            return self.is_null()
         
         if isinstance(input, Enum):
             return self.is_enum(input)
@@ -120,7 +105,7 @@ class QueryableField:
 
     def __ne__(self, literal_input) -> QueryPredicates: # type: ignore[override]
         if literal_input is None:
-            return QueryPredicates()
+            return self.is_not_null()
         
         input=self.normalize_literal_input(literal_input)
         return self.predicate(Ne(input)) 
@@ -241,18 +226,6 @@ class QueryableField:
     def with_last(self, input: Expression | str) -> FieldSpecification:
         return self.with_( Last.of(input))
     
-    def with_sum(self, input: Expression | str | int) -> FieldSpecification:        
-        return self.with_( Sum.of(input))
-    
-    def with_avg(self, input: Expression | str) -> FieldSpecification:
-        return self.with_( Avg.of(input))
-    
-    def with_min(self, input: Expression | str) -> FieldSpecification:
-        return self.with_( Min.of(input))
-    
-    def with_max(self, input: Expression | str) -> FieldSpecification:
-        return self.with_( Max.of(input))
-
     def with_subtract(self, input1: Expression | str, input2: Expression | str) -> FieldSpecification:
         return self.with_( Subtract.of(input1, input2))
 

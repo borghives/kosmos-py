@@ -1,12 +1,12 @@
-from typing import Optional
-from kosmos.meta.expression.base import Expression, AccOpExpression
+from typing import Optional, Any
+from kosmos.meta.expression.base import Expression, AccOpExpression, to_expr
 
 # An accumulator operation that computes the accumulation value
 # https://www.mongodb.com/docs/manual/reference/mql/accumulators/
 
 class Median(AccOpExpression):
-    def __init__(self, input: Expression) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -18,8 +18,8 @@ class Median(AccOpExpression):
         }
 
 class Percentile(AccOpExpression):
-    def __init__(self, input: Expression, p: list[float]) -> None:
-        self.input = input
+    def __init__(self, input: Any, p: list[float]) -> None:
+        self.input = to_expr(input)
         self.p = p
 
     @property
@@ -33,8 +33,8 @@ class Percentile(AccOpExpression):
         }
 
 class First(AccOpExpression):
-    def __init__(self, input: Expression) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -43,8 +43,8 @@ class First(AccOpExpression):
         }
 
 class Last(AccOpExpression):
-    def __init__(self, input: Expression) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -53,8 +53,8 @@ class Last(AccOpExpression):
         }
 
 class ArrayElemAt(AccOpExpression):
-    def __init__(self, input: Expression, index: int) -> None:
-        self.input = input
+    def __init__(self, input: Any, index: int) -> None:
+        self.input = to_expr(input)
         self.index = index
 
     @property
@@ -64,8 +64,8 @@ class ArrayElemAt(AccOpExpression):
         }
 
 class Sum(AccOpExpression):
-    def __init__(self, input: Expression | int ) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -74,8 +74,8 @@ class Sum(AccOpExpression):
         }
     
 class Avg(AccOpExpression):
-    def __init__(self, input: Expression ) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -84,8 +84,8 @@ class Avg(AccOpExpression):
         }
     
 class Min(AccOpExpression):
-    def __init__(self, input: Expression ) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -94,8 +94,8 @@ class Min(AccOpExpression):
         }
     
 class Max(AccOpExpression):
-    def __init__(self, input: Expression ) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -104,8 +104,8 @@ class Max(AccOpExpression):
         }
 
 class AddToSet(AccOpExpression):
-    def __init__(self, input: Expression) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -114,8 +114,8 @@ class AddToSet(AccOpExpression):
         }
 
 class Push(AccOpExpression):
-    def __init__(self, input: Expression) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -124,8 +124,8 @@ class Push(AccOpExpression):
         }
 
 class StdDevPop(AccOpExpression):
-    def __init__(self, input: Expression) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -134,8 +134,8 @@ class StdDevPop(AccOpExpression):
         }
 
 class StdDevSamp(AccOpExpression):
-    def __init__(self, input: Expression) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):
@@ -154,8 +154,8 @@ class Count(AccOpExpression):
         }
 
 class MergeObjects(AccOpExpression):
-    def __init__(self, input: Expression) -> None:
-        self.input = input
+    def __init__(self, input: Any) -> None:
+        self.input = to_expr(input)
 
     @property
     def repr_value(self):

@@ -13,7 +13,17 @@ class QueryOpExpression(Expression):
     A MongoDB query operator expression.
     """
 
-    pass
+    def is_empty(self) -> bool:
+        from collections import UserList
+        if isinstance(self, UserList):
+            return len(self.data) == 0
+        if hasattr(self, "_value"):
+            val = self._value
+            if isinstance(val, Expression):
+                return val.is_empty()
+            if val is None:
+                return True
+        return False
 
 
 class In(UserList, QueryOpExpression):
