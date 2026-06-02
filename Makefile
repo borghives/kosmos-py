@@ -3,8 +3,12 @@
 all: 
 	@echo "Please specify a command: make init, make update, etc."
 
+init:
+	uv venv --reinstall
+
 sync:
 	git pull origin main; git pull
+	uv sync
 
 update:
 	uv sync --upgrade

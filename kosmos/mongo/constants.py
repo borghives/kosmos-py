@@ -13,4 +13,5 @@ class MongoConstants:
     def collapse() -> 'MongoConstants':
         return constants.collapse()
 
+
 constants = LiminalStructure[MongoConstants](MongoConstants())
