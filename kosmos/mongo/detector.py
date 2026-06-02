@@ -414,16 +414,3 @@ class GroupDetector[T: Model]:
 
 
 
-def open_blob(file :BlobBase):
-    fs = MongoCollection(type(file).get_meta_state()).get_gridfs()
-    if file.has_id():
-        return fs.open_download_stream(file.collapse_id())
-    else:
-        return fs.open_download_stream_by_name(file.filename, revision=-1)
-
-async def open_blob_async(file :BlobBase):
-    fs = MongoCollection(type(file).get_meta_state()).get_gridfs_async()
-    if file.has_id():
-        return await fs.open_download_stream(file.collapse_id())
-    else:
-        return await fs.open_download_stream_by_name(file.filename, revision=-1)

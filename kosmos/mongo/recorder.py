@@ -22,10 +22,18 @@ class MongoRecorder(MongoCollection):
         collection = self.get_collection()
         return collection.update_one(scope, update, upsert=True)
 
-    def _upload_blob(self, filename: str, blob: io.BytesIO | bytes, metadata: Optional[Mapping[str, Any]] = None) -> ObjectId:
-        gfs = self.get_gridfs()
-        return gfs.upload_from_stream(filename, blob, metadata=metadata)
+    def _insert(self, doc):
+        collection = self.get_collection()
+        return collection.insert_one(doc)
 
+    def _upload_blob(self, filename: str, blob: io.BytesIO | bytes, metadata: Optional[Mapping[str, Any]] = None, previous_id: ObjectId | None = None) -> ObjectId:
+        gfs = self.get_gridfs()
+        new_id = gfs.upload_from_stream(filename, blob, metadata=metadata)
+        if previous_id is not None and previous_id != new_id:
+            self._delete_blob(previous_id)
+        
+        return new_id
+    
     def _delete_blob(self, file_id: ObjectId):
         gfs = self.get_gridfs()
         try:
@@ -46,14 +54,13 @@ class MongoRecorder(MongoCollection):
             filename = scope.get("filename")
             assert filename and isinstance(filename, str), "Filename is required for blob upload"
             metadata = ripple.get("metadata")
-            old_id = ripple.id
-            new_id = self._upload_blob(filename, blob, metadata)
-            ripple.set_id(new_id)
-            if old_id is not None and old_id != new_id:
-                self._delete_blob(old_id)
+            ripple.set_id(self._upload_blob(filename, blob, metadata, ripple.id))
         else:
-            update = ripple.get_update_instruction()
-            ripple.update_feedback = self._upsert(scope, update)
+            if ripple.is_stasis_mode():
+                ripple.insert_feedback = self._insert(ripple.get_doc())
+            else:
+                update = ripple.get_update_instruction()
+                ripple.update_feedback = self._upsert(scope, update)
 
         obj.decohere(ripple)
     
@@ -174,9 +181,12 @@ class MongoRecorder(MongoCollection):
         
         self.write_bulk_unordered(operations)
     
-    async def _upload_blob_async(self, filename: str, blob: io.BytesIO | bytes, metadata: Optional[Mapping[str, Any]] = None) -> ObjectId:
+    async def _upload_blob_async(self, filename: str, blob: io.BytesIO | bytes, metadata: Optional[Mapping[str, Any]] = None, previous_id: ObjectId | None = None) -> ObjectId:
         gfs = self.get_gridfs_async()
-        return await gfs.upload_from_stream(filename, blob, metadata=metadata)
+        new_id = await gfs.upload_from_stream(filename, blob, metadata=metadata)
+        if previous_id is not None and previous_id != new_id:
+            await self._delete_blob_async(previous_id)
+        return new_id
 
     async def _delete_blob_async(self, file_id: ObjectId):
         gfs = self.get_gridfs_async()
@@ -188,6 +198,10 @@ class MongoRecorder(MongoCollection):
     async def _upsert_async(self, scope: dict, update: dict):
         collection = self.get_collection_async()
         return await collection.update_one(scope, update, upsert=True)    
+    
+    async def _insert_async(self, doc):
+        collection = self.get_collection_async()
+        return await collection.insert_one(doc)
 
     async def record_async(self, obj: Observable):
         ripple = obj.collapse()
@@ -201,14 +215,13 @@ class MongoRecorder(MongoCollection):
             filename = scope.get("filename")
             assert filename and isinstance(filename, str), "Filename is required for blob upload"
             metadata = ripple.get("metadata")
-            old_id = ripple.id
-            new_id = await self._upload_blob_async(filename, blob, metadata)
-            ripple.set_id(new_id)
-            if old_id is not None and old_id != new_id:
-                await self._delete_blob_async(old_id)
+            ripple.set_id(await self._upload_blob_async(filename, blob, metadata, ripple.id))
         else:
-            update = ripple.get_update_instruction()
-            ripple.update_feedback = await self._upsert_async(scope, update)
+            if ripple.is_stasis_mode():
+                ripple.insert_feedback = await self._insert_async(ripple.get_doc())
+            else:
+                update = ripple.get_update_instruction()
+                ripple.update_feedback = await self._upsert_async(scope, update)
 
         obj.decohere(ripple)
     

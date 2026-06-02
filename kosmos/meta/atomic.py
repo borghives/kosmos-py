@@ -3,7 +3,7 @@ from pydantic import BeforeValidator
 from pydantic import BaseModel
 from typing import Annotated
 
-from pydantic import Field, PrivateAttr
+from pydantic import Field, PrivateAttr, model_serializer
 
 from .annotation import CoalesceOnIncr
 
@@ -32,6 +32,9 @@ class IntCounter(BaseModel):
     def __eq__(self, other) -> bool:
         return int(self) == int(other)
         
+    @model_serializer
+    def serialize_model(self) -> int:
+        return int(self)
 
     def get_changes(self) -> int:
         """

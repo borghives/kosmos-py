@@ -11,9 +11,10 @@ from kosmos.meta.model import Model
 from kosmos.matter.particle import ParticleBase
 from kosmos.matter.blob import BlobBase
 from kosmos.mongo import client, summon_mongo, PurposeAffinity
-from kosmos.mongo.detector import open_blob, open_blob_async
+from kosmos.space.persistable_blob import PersistableBlob, open_blob, open_blob_async
 from kosmos.mongo.project import Projector
 from kosmos.space.persistable import Persistable
+from kosmos.space.ledger import Ledger
 from kosmos.space.recorder import recorder, record, record_async
 from kosmos.space.detector import detect
 
@@ -41,6 +42,8 @@ __all__ = [
     "declare_persist_db",
     "ParticleBase",
     "Persistable",
+    "PersistableBlob",
+    "Ledger",
     "BlobBase",
     "IncrCounter",
     "RefreshOnSet",

@@ -139,4 +139,37 @@ class ParticleBase(Model):
         if final_id is not None:
             self.id = final_id
         
+#Derived from "stasis." This implies a particle exists permanently, possessing no internal mechanisms that would allow it to break down. 
+# Or a ledger item. 
 
+class Stasion(ParticleBase):
+    def collapse(self) -> Ripple:
+        ripple = self.create_ripple()
+        if ripple.state == RippleState.Unobservable:
+            return ripple
+
+        ripple.set_id(self.id)
+        ripple.set_scope(self.self_scope())
+
+        self.coalesce_fields_for(RefreshOnSet)
+        self.coalesce_fields_for(CoalesceOnInsert)
+        self.coalesce_fields_for(CoalesceOnIncr)
+
+        ripple.set_doc(self.dump_doc())
+        ripple.set_stasis_mode()
+        return ripple
+
+    def decohere(self, ripple: Ripple) -> None:
+        # Do nothing on an unobservable ripple. We should not be here decohering an unobservable ripple.
+        if ripple.state == RippleState.Unobservable:
+            raise ValueError("Failed Decoherence: ripple state is unobservable.")
+
+        self_state = self._state
+
+        if self_state == ModelState.Transition:
+            self._state = ModelState.Material
+            self._has_update = False
+        
+        final_id = ripple.get_final_id()
+        if final_id is not None:
+            self.id = final_id

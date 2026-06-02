@@ -21,6 +21,13 @@ class Ripple:
     blob_to_upload: io.BytesIO | None = None
     insert_feedback : InsertOneResult | None = None
     update_feedback : UpdateResult | None = None
+    stasis_mode : bool = False
+
+    def set_stasis_mode(self):
+        self.stasis_mode = True
+
+    def is_stasis_mode(self):
+        return self.stasis_mode
 
     def set_id(self, id: ObjectId | None):
         self.id = id

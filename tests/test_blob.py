@@ -21,12 +21,21 @@ class MyBlob(BlobBase):
     def dump_buffer(self) -> io.BytesIO:
         return io.BytesIO(self.data)
 
+@km.declare_persist_db(db_name="test_db", collection_name="test_persistable_blobs", is_blob=True)
+class MyPersistableBlob(km.PersistableBlob):
+    __test__ = False
+    data: bytes = b""
+
+    def dump_buffer(self) -> io.BytesIO:
+        return io.BytesIO(self.data)
+
 @pytest.fixture(autouse=True)
 def clean_database():
-    coll = km.mongo.collection.MongoCollection(MyBlob.get_meta_state())
-    coll.get_collection().delete_many({})
-    db = coll.get_collection().database
-    db[coll._get_data_name() + ".chunks"].delete_many({})
+    for cls in [MyBlob, MyPersistableBlob]:
+        coll = km.mongo.collection.MongoCollection(cls.get_meta_state())
+        coll.get_collection().delete_many({})
+        db = coll.get_collection().database
+        db[coll._get_data_name() + ".chunks"].delete_many({})
 
 
 def test_blob_sync_flow():
@@ -166,3 +175,41 @@ def test_blob_async_flow():
         assert new_loaded.metadata == {"updated_content": True, "mode": "async"}
 
     asyncio.run(run_async_test())
+
+def test_persistable_blob_flow():
+    # Test sync persist and open methods of PersistableBlob
+    content = b"Persistable content sync"
+    blob = MyPersistableBlob(filename="persist_sync.txt", data=content, metadata={"info": "persist_sync"})
+    assert not blob.has_id()
+    
+    blob.persist()
+    assert blob.has_id()
+    
+    loaded = MyPersistableBlob.detect(km.fld("filename") == "persist_sync.txt").load_one()
+    assert loaded is not None
+    assert loaded.id == blob.id
+    assert loaded.metadata == {"info": "persist_sync"}
+    
+    grid_out = loaded.open()
+    assert grid_out.read() == content
+
+def test_persistable_blob_async_flow():
+    # Test async persist and open methods of PersistableBlob
+    async def run_async():
+        content = b"Persistable content async"
+        blob = MyPersistableBlob(filename="persist_async.txt", data=content, metadata={"info": "persist_async"})
+        assert not blob.has_id()
+        
+        await blob.persist_async()
+        assert blob.has_id()
+        
+        loaded = await MyPersistableBlob.detect(km.fld("filename") == "persist_async.txt").load_one_async()
+        assert loaded is not None
+        assert loaded.id == blob.id
+        assert loaded.metadata == {"info": "persist_async"}
+        
+        grid_out = await loaded.open_async()
+        assert (await grid_out.read()) == content
+        
+    asyncio.run(run_async())
+

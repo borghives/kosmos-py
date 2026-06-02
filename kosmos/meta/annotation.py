@@ -58,8 +58,14 @@ class CoalesceOnIncr(Collapsible):
 
     def __call__(self, v):
         if v is None:
+            try:
+                return self.collapse()
+            except TypeError:
+                return None
+        try:
+            return self.collapse(v)
+        except TypeError:
             return self.collapse()
-        return v
 
 class Refreshable:
     """
