@@ -4,7 +4,7 @@ all:
 	@echo "Please specify a command: make init, make update, etc."
 
 init:
-	uv venv --reinstall
+	uv venv
 
 sync:
 	git pull origin main; git pull
