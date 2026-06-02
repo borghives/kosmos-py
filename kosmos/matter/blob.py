@@ -3,12 +3,12 @@ from datetime import datetime
 from pydantic import Field, ConfigDict, BaseModel
 from abc import abstractmethod
 
-from .persistable import ParticleBase
+from .particle import ParticleBase
 from .ripple import RippleState, Ripple
 
 import io
 
-class PersistableBlob(ParticleBase):
+class BlobBase(ParticleBase):
     filename: str       = Field(default="")
     metadata: dict|None = Field(default=None)
     # GridFS metadata fields (populated from database, ignored during creation/upload)

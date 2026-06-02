@@ -2,7 +2,7 @@ from polars import string_cache
 from pymongo.errors import BulkWriteError
 from pydantic import Field
 from bson import ObjectId
-from kosmos.matter.persistable import ParticleBase
+from kosmos.matter.particle import ParticleBase
 from datetime import datetime, timezone
 from pymongo.collection import Collection
 import pytest
@@ -25,7 +25,7 @@ class TestModel(ParticleBase):
 @pytest.fixture(scope="module", autouse=True)
 def setup_kosmos():
     km.ignite("test.env")
-    recorder = km.MongoRecorder(TestModel)
+    recorder = km.recorder(TestModel)
     collection = recorder.get_collection()
     collection.delete_many({})
 

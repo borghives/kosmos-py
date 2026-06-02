@@ -2,7 +2,7 @@ from polars import string_cache
 from pymongo.errors import BulkWriteError
 from pydantic import Field
 from bson import ObjectId
-from kosmos.matter.persistable import ParticleBase
+from kosmos.matter.particle import ParticleBase
 from datetime import datetime, timezone
 from pymongo.collection import Collection
 import pytest
@@ -144,7 +144,7 @@ def test_inc_op():
     assert model.counter == 2
     assert model.counter2 == 3
 
-    recorder = km.MongoRecorder(TestIncModel)
+    recorder = km.recorder(TestIncModel)
     recorder.record(model)
     
     # 2. Check the database for the initial state
@@ -197,14 +197,14 @@ def test_insert_dataframe():
     """Test inserting a pandas DataFrame."""
 
     df = pd.DataFrame({"name": ["df_user1"], "value": [10], "updated_time": [None]})
-    km.MongoRecorder(TestModel).insert_dataframe(df)
+    km.recorder(TestModel).insert_dataframe(df)
 
 def test_insert_dataframe_with_objectid():
     """Test inserting a pandas DataFrame."""
     link_id = ObjectId()
     link2_id = ObjectId()
     df = pd.DataFrame({"_id": [ObjectId()], "name": ["df_user1_with_link"], "value": [10], "updated_time": [None], "link_id": [link_id], "link2_id": [link2_id]})
-    km.MongoRecorder(TestModelWithLinkId).insert_dataframe(df)
+    km.recorder(TestModelWithLinkId).insert_dataframe(df)
 
     loaded_model = km.detect(TestModelWithLinkId).filter(km.fld("link_id") == link_id).load_one()
 
@@ -223,7 +223,7 @@ def test_insert_dataframe_with_objectid():
 def test_update_dataframe():
     """Test upserting a DataFrame."""
 
-    recorder = km.MongoRecorder(TestModel)
+    recorder = km.recorder(TestModel)
     collection = recorder.get_collection()
     collection.delete_many({})
 
@@ -276,13 +276,13 @@ def test_insert_dataframe_ignores_duplicate_error():
     df = pd.DataFrame({"name": ["test"], "value": [1]})
     
     try:
-        km.MongoRecorder(TestModel).insert_dataframe(df)
+        km.recorder(TestModel).insert_dataframe(df)
     except BulkWriteError as bwe:
         assert bwe is None
     
 def test_load_dataframe():
     """Test loading data into a pandas DataFrame."""
-    recorder = km.MongoRecorder(TestModel)
+    recorder = km.recorder(TestModel)
     collection = recorder.get_collection()
     collection.delete_many({})
 

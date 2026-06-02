@@ -1,7 +1,6 @@
 
 from kosmos.meta.state import MetaState
-from kosmos.matter.blob import PersistableBlob
-from pymongo.asynchronous.collection import AsyncCollection
+from kosmos.matter.blob import BlobBase
 from bson import ObjectId
 from enum import StrEnum
 from pymongo.collection import Collection
@@ -15,7 +14,6 @@ from kosmos.meta.expression.sort import SortDesc
 from kosmos.meta.expression.sort import SortOp
 from kosmos.meta.expression.filter import QueryPredicates
 from typing import Self
-from kosmos.matter.observable import Observable
 from typing import Type, List
 from kosmos.mongo.collection import MongoCollection
 from kosmos.meta.expression.aggregation import Aggregation
@@ -416,14 +414,14 @@ class GroupDetector[T: Model]:
 
 
 
-def open_blob(file :PersistableBlob):
+def open_blob(file :BlobBase):
     fs = MongoCollection(type(file).get_meta_state()).get_gridfs()
     if file.has_id():
         return fs.open_download_stream(file.collapse_id())
     else:
         return fs.open_download_stream_by_name(file.filename, revision=-1)
 
-async def open_blob_async(file :PersistableBlob):
+async def open_blob_async(file :BlobBase):
     fs = MongoCollection(type(file).get_meta_state()).get_gridfs_async()
     if file.has_id():
         return await fs.open_download_stream(file.collapse_id())

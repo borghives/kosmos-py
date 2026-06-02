@@ -6,14 +6,14 @@ from bson import ObjectId
 from typing import Optional
 
 import kosmos as km
-from kosmos import PersistableBlob
+from kosmos import BlobBase
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_kosmos():
     km.ignite("test.env")
 
 @km.declare_persist_db(db_name="test_db", collection_name="test_blobs", is_blob=True)
-class MyBlob(PersistableBlob):
+class MyBlob(BlobBase):
     __test__ = False
     # metadata: Optional[dict] = None
     data: bytes = b""

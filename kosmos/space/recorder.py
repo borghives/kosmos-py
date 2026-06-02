@@ -2,7 +2,7 @@ from kosmos.matter.observable import Observable
 from kosmos.mongo.recorder import MongoRecorder
 
 
-def get_recorder(obj_type: type) -> MongoRecorder:
+def recorder(obj_type: type) -> MongoRecorder:
     return MongoRecorder(obj_type)
 
 def record(obj: Observable):

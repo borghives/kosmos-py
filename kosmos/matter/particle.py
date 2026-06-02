@@ -1,4 +1,3 @@
-from pydantic import Field
 from enum import IntEnum
 
 from kosmos.meta.util import coalesce

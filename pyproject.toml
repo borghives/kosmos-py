@@ -41,6 +41,7 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "faker>=40.19.1",
+    "pandas-stubs>=3.0.3.260530",
     "py-spy>=0.4.2",
     "pyarrow-stubs>=20.0.0.20251215",
     "pytest>=9.0.3",

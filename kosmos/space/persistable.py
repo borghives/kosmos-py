@@ -1,9 +1,9 @@
 from pydantic import Field
 from kosmos.meta.expression.filter import QueryPredicates
 from kosmos.meta.annotation import TimeInserted, TimeUpdated
-from kosmos.matter.persistable import ParticleBase
+from kosmos.matter.particle import ParticleBase
 from .detector import detect
-from .recorder import get_recorder
+from .recorder import recorder
 
 
 class Persistable(ParticleBase):
@@ -25,7 +25,7 @@ class Persistable(ParticleBase):
 
     @classmethod
     def recorder(cls):
-        return get_recorder(cls)
+        return recorder(cls)
     
     def persist(self):
         self.recorder().record(self)

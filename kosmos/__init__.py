@@ -8,14 +8,13 @@ from kosmos.meta.state import declare_persist_db
 from kosmos.meta.atomic import IncrCounter, IntCounter, ZeroCounter
 from kosmos.meta.annotation import RefreshOnSet, CoalesceOnInsert
 from kosmos.meta.model import Model
-from kosmos.matter.persistable import ParticleBase
-from kosmos.matter.blob import PersistableBlob
+from kosmos.matter.particle import ParticleBase
+from kosmos.matter.blob import BlobBase
 from kosmos.mongo import client, summon_mongo, PurposeAffinity
-from kosmos.mongo.recorder import MongoRecorder
-from kosmos.mongo.detector import MongoDetector, open_blob, open_blob_async
+from kosmos.mongo.detector import open_blob, open_blob_async
 from kosmos.mongo.project import Projector
 from kosmos.space.persistable import Persistable
-from kosmos.space.recorder import record, record_async
+from kosmos.space.recorder import recorder, record, record_async
 from kosmos.space.detector import detect
 
 fld = QueryableField
@@ -34,7 +33,6 @@ __all__ = [
     "lit",
     "mongo",
     "client",
-    "MongoDetector",
     "open_blob",
     "open_blob_async",
     "detect",
@@ -43,13 +41,13 @@ __all__ = [
     "declare_persist_db",
     "ParticleBase",
     "Persistable",
-    "PersistableBlob",
+    "BlobBase",
     "IncrCounter",
     "RefreshOnSet",
     "CoalesceOnInsert",
+    "recorder",
     "record",
     "record_async",
-    "MongoRecorder",
     "IntCounter",
     "ZeroCounter",
 ]
