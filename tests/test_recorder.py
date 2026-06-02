@@ -1,5 +1,5 @@
-from kosmos.matter.persistable import Persistable
 import pytest
+from kosmos import Persistable
 from unittest.mock import MagicMock, patch
 from kosmos.meta.model import Model
 from kosmos.meta.state import declare_persist_db

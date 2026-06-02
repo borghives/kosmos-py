@@ -2,7 +2,7 @@ from polars import string_cache
 from pymongo.errors import BulkWriteError
 from pydantic import Field
 from bson import ObjectId
-from kosmos.matter.persistable import ParticleBase, Persistable
+from kosmos.matter.persistable import ParticleBase
 from datetime import datetime, timezone
 from pymongo.collection import Collection
 import pytest

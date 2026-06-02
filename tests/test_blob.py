@@ -15,7 +15,7 @@ def setup_kosmos():
 @km.declare_persist_db(db_name="test_db", collection_name="test_blobs", is_blob=True)
 class MyBlob(PersistableBlob):
     __test__ = False
-    metadata: Optional[dict] = None
+    # metadata: Optional[dict] = None
     data: bytes = b""
 
     def dump_buffer(self) -> io.BytesIO:

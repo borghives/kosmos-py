@@ -4,7 +4,7 @@ from enum import IntEnum
 from kosmos.meta.util import coalesce
 from kosmos.meta.state import MetaState
 from kosmos.meta.model import Model
-from kosmos.meta.annotation import TimeInserted, TimeUpdated,CoalesceOnInsert, CoalesceOnIncr, RefreshOnSet
+from kosmos.meta.annotation import CoalesceOnInsert, CoalesceOnIncr, RefreshOnSet
 from .ripple import RippleState, Ripple
 
 class ModelState(IntEnum):
@@ -140,14 +140,4 @@ class ParticleBase(Model):
         if final_id is not None:
             self.id = final_id
         
-
-class Persistable(ParticleBase):
-    updated_time: TimeUpdated = Field(
-        description="Timestamp of the last update.", default=None
-    )
-    
-    created_at: TimeInserted = Field(
-        description="Entity Created Time (does not exist if entity has not been persisted)",
-        default=None,
-    )
 

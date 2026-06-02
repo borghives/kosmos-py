@@ -2,7 +2,7 @@ from polars import string_cache
 from pymongo.errors import BulkWriteError
 from pydantic import Field
 from bson import ObjectId
-from kosmos.matter.persistable import ParticleBase, Persistable
+from kosmos.matter.persistable import ParticleBase
 from datetime import datetime, timezone
 from pymongo.collection import Collection
 import pytest
@@ -23,7 +23,7 @@ class TestModel(ParticleBase):
     link_id: ObjectId | None = None
 
 @km.declare_persist_db(db_name="test_db", collection_name="test_collection", version=1)
-class TestModelWithLinkId(Persistable):
+class TestModelWithLinkId(km.Persistable):
     __test__ = False
     name: str
     value: int
@@ -31,7 +31,7 @@ class TestModelWithLinkId(Persistable):
     link2_id: ObjectId = Field(description="An incrementing integer counter", default=ObjectId())
 
 @km.declare_persist_db(collection_name="test_inc_collection", db_name="test_db")
-class TestIncModel(Persistable):
+class TestIncModel(km.Persistable):
     __test__ = False
     test_field: str
     counter: km.IncrCounter  = Field(description="An incrementing integer counter", default=km.ZeroCounter)
