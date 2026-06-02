@@ -34,36 +34,59 @@ def setup_kosmos():
     recorder.record(TestModel(name="Charlie", value=50))
 
 def test_load_one():
-    user = km.MongoDetector(TestModel).filter(km.fld('name') == "Alice").load_one()
+    user = km.detect(TestModel).filter(km.fld('name') == "Alice").load_one()
     assert user is not None
     assert isinstance(user, TestModel)
     assert user.name == "Alice"
 
 def test_load_many():
-    users = km.MongoDetector(TestModel).filter(km.fld('value') > 35).load_many()
+    users = km.detect(TestModel).filter(km.fld('value') > 35).load_many()
     assert len(users) == 2
 
 def test_load_latest():
-    latest_user = cast(TestModel, km.MongoDetector(TestModel).filter(km.fld('name') == "Charlie").load_top())
+    latest_user = cast(TestModel, km.detect(TestModel).filter(km.fld('name') == "Charlie").load_top())
     assert latest_user is not None
     assert latest_user.name == "Charlie"
 
 def test_exists():
-    assert km.MongoDetector(TestModel).filter(km.fld('name') == "Alice").exists()
-    assert not km.MongoDetector(TestModel).filter(km.fld('name') == "David").exists()
+    assert km.detect(TestModel).filter(km.fld('name') == "Alice").exists()
+    assert not km.detect(TestModel).filter(km.fld('name') == "David").exists()
 
 def test_load_dataframe():
-    df = km.MongoDetector(TestModel).load_dataframe()
+    df = km.detect(TestModel).load_dataframe()
     assert len(df) == 3
     assert "name" in df.columns
 
 def test_load_polars():
-    df = km.MongoDetector(TestModel).load_polars()
+    df = km.detect(TestModel).load_polars()
     assert len(df) == 3
     assert isinstance(df, pl.DataFrame)
     assert "name" in df.columns
 
 def test_load_table():
-    table = km.MongoDetector(TestModel).load_table()
+    table = km.detect(TestModel).load_table()
     assert len(table) == 3
     assert "name" in table.column_names
+
+class TestProjectedModel(km.Model):
+    __test__ = False
+    name: str
+
+def test_projection():
+    # Test projector creation, field combination, and chainable pipeline
+    projector = km.Projector(TestProjectedModel).Project(km.fld("name").with_())
+    detector = projector.From(km.detect(TestModel))
+    
+    # Verify the results are correctly deserialized to the target model
+    results = detector.load_many()
+    assert len(results) == 3
+    for r in results:
+        assert isinstance(r, TestProjectedModel)
+        assert hasattr(r, "name")
+        assert not hasattr(r, "value")
+        
+    # Verify that subsequent operations on the returned detector resolve fields according to the target model
+    filtered = detector.filter(km.fld("name") == "Alice").load_one()
+    assert filtered is not None
+    assert isinstance(filtered, TestProjectedModel)
+    assert filtered.name == "Alice"

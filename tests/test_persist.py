@@ -166,7 +166,7 @@ def test_inc_op():
     field = km.fld("counter")
     assert field is not None
 
-    detector = km.MongoDetector[TestIncModel](TestIncModel)
+    detector = km.detect(TestIncModel)
     loaded_model = cast(TestIncModel, detector.load_id(model.id))
     assert loaded_model is not None
     assert loaded_model.counter == 2
@@ -206,7 +206,7 @@ def test_insert_dataframe_with_objectid():
     df = pd.DataFrame({"_id": [ObjectId()], "name": ["df_user1_with_link"], "value": [10], "updated_time": [None], "link_id": [link_id], "link2_id": [link2_id]})
     km.MongoRecorder(TestModelWithLinkId).insert_dataframe(df)
 
-    loaded_model = km.MongoDetector(TestModelWithLinkId).filter(km.fld("link_id") == link_id).load_one()
+    loaded_model = km.detect(TestModelWithLinkId).filter(km.fld("link_id") == link_id).load_one()
 
     assert loaded_model is not None
     assert isinstance(loaded_model, TestModelWithLinkId)
@@ -245,7 +245,7 @@ def test_update_dataframe():
     # 3. Perform Upsert
     recorder.update_dataframe(df, on=["name"], upsert=True)
 
-    detector = km.MongoDetector(TestModel)
+    detector = km.detect(TestModel)
 
     # 4. Verify
     # Check "existing" updated
@@ -292,7 +292,7 @@ def test_load_dataframe():
     ])
     recorder.insert_dataframe(df)
 
-    detector = km.MongoDetector(TestModel)
+    detector = km.detect(TestModel)
     loaded_df = detector.load_dataframe()
 
     assert len(loaded_df) == 2

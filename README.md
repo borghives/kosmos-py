@@ -136,7 +136,7 @@ inv = Inventory(item_id="sku-102")
 km.record(inv)
 
 # Load and increment atomically
-detector = km.dectect(Inventory)
+detector = km.detect(Inventory)
 loaded_inv = detector.filter(km.fld("item_id") == "sku-102").load_one()
 
 loaded_inv.stock += 5  # Queues an atomic increment of +5
@@ -173,13 +173,13 @@ class LogEntry(km.ParticleBase):
 
 ## 7. Querying and Filtering (`MongoDetector`)
 
-The [MongoDetector](./kosmos/mongo/detector.py#L44) class (instantiated with `km.dectect(Model)`) exposes a chainable query builder supporting projection, filtering, pagination, lookups, aggregation, and conversion to standard scientific formats.
+The [MongoDetector](./kosmos/mongo/detector.py#L44) class (instantiated with `km.detect(Model)`) exposes a chainable query builder supporting projection, filtering, pagination, lookups, aggregation, and conversion to standard scientific formats.
 
 ### Fluent Aggregation & Querying
 ```python
 import kosmos as km
 
-detector = km.dectect(Product)
+detector = km.detect(Product)
 
 # Chain filters and lookup pipelines
 results = (
@@ -284,7 +284,7 @@ new_attachment = DocumentAttachment(
 km.record(new_attachment)  # Uploads to GridFS
 
 # 2. Retrieve file content
-detector = km.dectect(DocumentAttachment)
+detector = km.detect(DocumentAttachment)
 loaded = detector.filter(km.fld("filename") == "invoice.pdf").load_one()
 
 # Open download stream to read contents

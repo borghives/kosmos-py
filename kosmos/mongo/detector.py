@@ -1,4 +1,5 @@
 
+from kosmos.meta.state import MetaState
 from kosmos.matter.blob import PersistableBlob
 from pymongo.asynchronous.collection import AsyncCollection
 from bson import ObjectId
@@ -18,7 +19,7 @@ from kosmos.matter.observable import Observable
 from typing import Type, List
 from kosmos.mongo.collection import MongoCollection
 from kosmos.meta.expression.aggregation import AggregationStages
-from kosmos.matter.detectable import Detectable
+from kosmos.meta.model import Model
 from pymongoarrow.api import ( #type: ignore
     Schema,  Table,
     aggregate_arrow_all,
@@ -41,9 +42,9 @@ class WhenNotMatchedAction(StrEnum):
     DISCARD = "discard"
     FAIL = "fail"
 
-class MongoDetector[T: Detectable](MongoCollection):
-    def __init__(self, obj_type: Type[T]):
-        super().__init__(obj_type.get_meta_state())
+class MongoDetector[T: Model](MongoCollection):
+    def __init__(self, meta_state: MetaState, obj_type: Type[T]):
+        super().__init__(meta_state)
         self._aggregation_expr: AggregationStages = AggregationStages()
         self._persist_cls = obj_type
 
@@ -51,7 +52,7 @@ class MongoDetector[T: Detectable](MongoCollection):
         if agg is None:
             agg = self._aggregation_expr
 
-        retval = MongoDetector[T](self._persist_cls)
+        retval = MongoDetector[T](self.meta_state, self._persist_cls)
         retval._aggregation_expr = agg
         return retval
 
@@ -358,6 +359,9 @@ class MongoDetector[T: Detectable](MongoCollection):
         doc = await self.load_one_async()
         return doc is not None
 
+    def get_op_stages(self) -> AggregationStages:
+        return self._aggregation_expr
+
     def _load_dataframe_legacy(
         self,
     ) -> pd.DataFrame:
@@ -388,7 +392,7 @@ class MongoDetector[T: Detectable](MongoCollection):
         assert isinstance(flattened_pipelines, list)
         return flattened_pipelines
 
-class GroupDetector[T: Detectable]:
+class GroupDetector[T: Model]:
     def __init__(self, base_directive: MongoDetector[T], key: Expression | None):
         self._base_directive = base_directive
         self.group_expression = GroupExpression(key)
@@ -410,8 +414,12 @@ class GroupDetector[T: Detectable]:
         
         return self._base_directive
 
-def dectect[T: Detectable](obj: Type[T]):
-    return MongoDetector[T](obj)
+def detect[T: Model](objtype: Type[T]):
+    if not hasattr(objtype, "get_meta_state"):
+        raise TypeError(f"Class {objtype.__name__} has no state meta information for detection.")
+    
+    meta = objtype.get_meta_state()
+    return MongoDetector[T](meta, objtype)
 
 def open_blob(file :PersistableBlob):
     fs = MongoCollection(type(file).get_meta_state()).get_gridfs()

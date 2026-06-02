@@ -40,7 +40,7 @@ def test_blob_sync_flow():
     assert isinstance(new_blob.id, ObjectId)
 
     # 2. Test querying and metadata parsing
-    detector = km.MongoDetector[MyBlob](MyBlob)
+    detector = km.detect(MyBlob)
     loaded_blob = detector.filter(km.fld("filename") == "sync_test.txt").load_one()
     assert loaded_blob is not None
     assert loaded_blob.id == new_blob.id
@@ -110,7 +110,7 @@ def test_blob_async_flow():
         assert isinstance(new_blob.id, ObjectId)
 
         # 2. Test querying and metadata parsing
-        detector = km.MongoDetector[MyBlob](MyBlob)
+        detector = km.detect(MyBlob)
         loaded_blob = await detector.filter(km.fld("filename") == "async_test.txt").load_one_async()
         assert loaded_blob is not None
         assert loaded_blob.id == new_blob.id
