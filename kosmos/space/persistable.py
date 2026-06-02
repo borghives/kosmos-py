@@ -1,7 +1,10 @@
+from pydantic import Field
+from kosmos.meta.expression.filter import QueryPredicates
 from kosmos.meta.annotation import TimeInserted, TimeUpdated
 from kosmos.matter.persistable import ParticleBase
+from .detector import detect
+from .recorder import get_recorder
 
-from pydantic import Field
 
 class Persistable(ParticleBase):
     updated_time: TimeUpdated = Field(
@@ -13,3 +16,19 @@ class Persistable(ParticleBase):
         default=None,
     )
 
+    @classmethod
+    def detect(cls, filter: QueryPredicates|None = None):
+        detector = detect(cls)
+        if filter is not None:
+            detector = detector.filter(filter)
+        return detector
+
+    @classmethod
+    def recorder(cls):
+        return get_recorder(cls)
+    
+    def persist(self):
+        self.recorder().record(self)
+    
+    async def persist_async(self):
+        await self.recorder().record_async(self)

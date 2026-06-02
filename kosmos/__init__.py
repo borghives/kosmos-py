@@ -11,10 +11,13 @@ from kosmos.meta.model import Model
 from kosmos.matter.persistable import ParticleBase
 from kosmos.matter.blob import PersistableBlob
 from kosmos.mongo import client, summon_mongo, PurposeAffinity
-from kosmos.mongo.recorder import record, record_async, MongoRecorder
-from kosmos.mongo.detector import MongoDetector, open_blob, open_blob_async, detect
+from kosmos.mongo.recorder import MongoRecorder
+from kosmos.mongo.detector import MongoDetector, open_blob, open_blob_async
 from kosmos.mongo.project import Projector
 from kosmos.space.persistable import Persistable
+from kosmos.space.recorder import record, record_async
+from kosmos.space.detector import detect
+
 fld = QueryableField
 pth = FieldPath
 lit = LiteralInput

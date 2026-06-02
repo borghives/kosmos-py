@@ -42,5 +42,6 @@ build-backend = "hatchling.build"
 dev = [
     "faker>=40.19.1",
     "py-spy>=0.4.2",
+    "pyarrow-stubs>=20.0.0.20251215",
     "pytest>=9.0.3",
 ]

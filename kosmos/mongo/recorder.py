@@ -292,10 +292,6 @@ class MongoRecorder(MongoCollection):
         
         await self.write_bulk_unordered_async(operations)
 
-def record(obj: Observable):
-    MongoRecorder(obj.__class__).record(obj)
 
-async def record_async(obj: Observable):
-    await MongoRecorder(obj.__class__).record_async(obj)
 
 

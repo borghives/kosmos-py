@@ -414,12 +414,7 @@ class GroupDetector[T: Model]:
         
         return self._base_directive
 
-def detect[T: Model](objtype: Type[T]):
-    if not hasattr(objtype, "get_meta_state"):
-        raise TypeError(f"Class {objtype.__name__} has no state meta information for detection.")
-    
-    meta = objtype.get_meta_state()
-    return MongoDetector[T](meta, objtype)
+
 
 def open_blob(file :PersistableBlob):
     fs = MongoCollection(type(file).get_meta_state()).get_gridfs()
