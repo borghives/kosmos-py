@@ -189,7 +189,7 @@ def test_helper_functions_return_expressions():
     assert to_date_alignment("val", 8).express() == {"$toDate": {"$concat": ["$val", "T08:00:00.000Z"]}}
 
 def test_aggregation_stages_alias_resolution():
-    from kosmos.meta.expression.aggregation import AggregationStages
+    from kosmos.meta.expression.aggregation import Aggregation
     from pydantic import Field, BaseModel
     
     class Item(BaseModel):
@@ -203,7 +203,7 @@ def test_aggregation_stages_alias_resolution():
     driver = ExpressionDriver(Order.model_fields)
     
     # test lookup stage resolving localField
-    agg = AggregationStages().lookup(
+    agg = Aggregation().lookup(
         foreignCollection="customers",
         localField="customer_id",
         foreignField="id",
@@ -221,10 +221,10 @@ def test_aggregation_stages_alias_resolution():
     ]
     
     # test unwind resolving path
-    agg2 = AggregationStages().unwind("items")
+    agg2 = Aggregation().unwind("items")
     assert agg2.express(driver) == [{"$unwind": "$its"}]
     
-    agg3 = AggregationStages().unwind("$items")
+    agg3 = Aggregation().unwind("$items")
     assert agg3.express(driver) == [{"$unwind": "$its"}]
 
 def test_logical_flattening_and_empty_combinations():
@@ -305,3 +305,51 @@ def test_nested_list_alias_resolution():
     
     f2 = FieldName("items.quantity")
     assert f2.express(driver) == "its.qty"
+
+def test_new_mql_operators():
+    from kosmos.meta.expression.query import Nin, Nor, Expr, ElemMatch, Regex
+    from kosmos.meta.expression.op import StrCaseCmp, SubstrBytes, Week
+    from kosmos.meta.expression.aggregation import Aggregation
+    
+    # 1. Nin 
+    n1 = Nin([1, 2, 3])
+    assert n1.express() == {"$nin": [1, 2, 3]}
+    
+    # 2. Nor
+    nor1 = Nor([{"a": 1}, {"b": 2}])
+    assert nor1.express() == {"$nor": [{"a": 1}, {"b": 2}]}
+    
+    # 3. Expr
+    expr1 = Expr({"$gt": ["$field1", "$field2"]})
+    assert expr1.express() == {"$expr": {"$gt": ["$field1", "$field2"]}}
+    
+    # 4. ElemMatch
+    em = ElemMatch({"product": "book", "qty": {"$gt": 5}})
+    assert em.express() == {"$elemMatch": {"product": "book", "qty": {"$gt": 5}}}
+    
+    # 5. Regex
+    r1 = Regex("^A", options="i")
+    assert r1.express() == {"$regex": "^A", "$options": "i"}
+    r2 = Regex("^B")
+    assert r2.express() == {"$regex": "^B"}
+    
+    # 6. StrCaseCmp
+    s1 = StrCaseCmp("str1", "str2")
+    assert s1.express() == {"$strcasecmp": ["$str1", "$str2"]}
+    
+    # 7. SubstrBytes
+    sb = SubstrBytes("my_str", 1, 3)
+    assert sb.express() == {"$substrBytes": ["$my_str", 1, 3]}
+    
+    # 8. Week
+    w = Week("my_date", timezone="UTC")
+    assert w.express() == {
+        "$week": {
+            "date": "$my_date",
+            "timezone": "UTC"
+        }
+    }
+    
+    # 9. Aggregation
+    agg = Aggregation().match({"status": "A"}).limit(5)
+    assert agg.express() == [{"$match": {"status": "A"}}, {"$limit": 5}]

@@ -36,7 +36,7 @@ class In(UserList, QueryOpExpression):
         return {"$in": self.data}
 
 
-class NotIn(UserList, QueryOpExpression):
+class Nin(UserList, QueryOpExpression):
     """
     A match directive that creates a `$nin` operator.
     """
@@ -238,3 +238,49 @@ class Or(UserList, QueryOpExpression):
     @property
     def repr_value(self):
         return {"$or": self.data}
+
+class Nor(UserList, QueryOpExpression):
+    """
+    A match directive that creates an `$nor` operator.
+    It takes a list of filter expressions.
+    """
+    @property
+    def repr_value(self):
+        return {"$nor": self.data}
+
+class Expr(QueryOpExpression):
+    """
+    A match directive that creates an `$expr` operator.
+    """
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def repr_value(self):
+        return {"$expr": self._value}
+
+class ElemMatch(QueryOpExpression):
+    """
+    A match directive that creates an `$elemMatch` operator.
+    """
+    def __init__(self, value):
+        self._value = value
+
+    @property
+    def repr_value(self):
+        return {"$elemMatch": self._value}
+
+class Regex(QueryOpExpression):
+    """
+    A match directive that creates an `$regex` operator.
+    """
+    def __init__(self, pattern: str, options: Optional[str] = None):
+        self.pattern = pattern
+        self.options = options
+
+    @property
+    def repr_value(self):
+        val = {"$regex": self.pattern}
+        if self.options is not None:
+            val["$options"] = self.options
+        return val

@@ -1,10 +1,8 @@
-from kosmos.meta.expression.base import combine_field_specifications
-from kosmos.meta.expression.base import ExpressionDriver
-from typing import Type, List, Self
-from kosmos.meta.expression.base import FieldSpecification
-from .detector import MongoDetector
+
+from typing import Type, Self
+from kosmos.meta.expression.base import ExpressionDriver, FieldSpecification, combine_field_specifications
 from kosmos.meta.model import Model
-from kosmos.meta.state import MetaState
+from .detector import MongoDetector
 
 class Projector[T: Model]:
     def __init__(self, obj_type: Type[T]):

@@ -12,7 +12,7 @@ class DummyModel(Persistable):
     name: str
 
 @patch("kosmos.mongo.client.MongoClient")
-@patch("kosmos.space.summon_mongo")
+@patch("kosmos.mongo.summon_mongo")
 def test_recorder_creation(mock_summon_mongo, mock_mongo_client):
     # Mock MongoClient to avoid real database connection attempts
     mock_client = MagicMock()

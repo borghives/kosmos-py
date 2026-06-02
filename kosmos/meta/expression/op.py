@@ -67,13 +67,13 @@ class DateToString(OpExpression):
     def __init__(self, input: Any, format: str, timezone: Optional[Any] = None) -> None:
         self.input = to_expr(input)
         self.format = format
+        self.timezone: Expression | None = None
+        
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
         
     @property
     def repr_value(self):
@@ -232,6 +232,16 @@ class SubstrCP(OpExpression):
     def repr_value(self):
         return {"$substrCP": [self.string, self.code_point_index, self.code_point_count]}
 
+class SubstrBytes(OpExpression):
+    def __init__(self, string: Any, byte_index: Any, byte_count: Any) -> None:
+        self.string = to_expr(string)
+        self.byte_index = to_expr(byte_index)
+        self.byte_count = to_expr(byte_count)
+
+    @property
+    def repr_value(self):
+        return {"$substrBytes": [self.string, self.byte_index, self.byte_count]}
+
 class ToLower(OpExpression):
     def __init__(self, input: Any) -> None:
         self.input = to_expr(input)
@@ -264,7 +274,7 @@ class StrLenCP(OpExpression):
     def repr_value(self):
         return {"$strLenCP": self.input}
 
-class Strcasecmp(OpExpression):
+class StrCaseCmp(OpExpression):
     def __init__(self, string1: Any, string2: Any) -> None:
         self.string1 = to_expr(string1)
         self.string2 = to_expr(string2)
@@ -318,13 +328,12 @@ class In(OpExpression):
 class Year(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
@@ -333,13 +342,12 @@ class Year(OpExpression):
 class Month(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
@@ -348,13 +356,12 @@ class Month(OpExpression):
 class DayOfMonth(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
@@ -363,13 +370,12 @@ class DayOfMonth(OpExpression):
 class DayOfWeek(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
@@ -378,13 +384,12 @@ class DayOfWeek(OpExpression):
 class DayOfYear(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
@@ -393,13 +398,12 @@ class DayOfYear(OpExpression):
 class Hour(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
@@ -408,13 +412,12 @@ class Hour(OpExpression):
 class Minute(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
@@ -423,13 +426,12 @@ class Minute(OpExpression):
 class Second(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
@@ -438,28 +440,40 @@ class Second(OpExpression):
 class Millisecond(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
         return _date_op_repr("$millisecond", self.date, self.timezone)
 
-class IsoDayOfWeek(OpExpression):
+class Week(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
+
+    @property
+    def repr_value(self):
+        return _date_op_repr("$week", self.date, self.timezone)
+
+class IsoDayOfWeek(OpExpression):
+    def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
+        self.date = to_expr(date)
+        self.timezone: Expression | None = None
+        if timezone is not None:
+            if isinstance(timezone, str) and not timezone.startswith("$"):
+                self.timezone = LiteralInput(timezone)
+            else:
+                self.timezone = to_expr(timezone)
 
     @property
     def repr_value(self):
@@ -468,13 +482,12 @@ class IsoDayOfWeek(OpExpression):
 class IsoWeek(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
@@ -483,13 +496,12 @@ class IsoWeek(OpExpression):
 class IsoWeekYear(OpExpression):
     def __init__(self, date: Any, timezone: Optional[Any] = None) -> None:
         self.date = to_expr(date)
+        self.timezone: Expression | None = None
         if timezone is not None:
             if isinstance(timezone, str) and not timezone.startswith("$"):
                 self.timezone = LiteralInput(timezone)
             else:
                 self.timezone = to_expr(timezone)
-        else:
-            self.timezone = None
 
     @property
     def repr_value(self):
@@ -537,12 +549,15 @@ class Type(OpExpression):
 class Convert(OpExpression):
     def __init__(self, input: Any, to: Any, on_error: Optional[Any] = None, on_null: Optional[Any] = None) -> None:
         self.input = to_expr(input)
-        if isinstance(to, str) and not to.startswith("$"):
-            self.to = LiteralInput(to)
-        else:
-            self.to = to_expr(to)
-        self.on_error = to_expr(on_error) if on_error is not None else None
-        self.on_null = to_expr(on_null) if on_null is not None else None
+        self.to: Expression = LiteralInput(to) if isinstance(to, str) and not to.startswith("$") else to_expr(to)
+        self.on_error: Expression | None = None 
+        self.on_null: Expression | None = None 
+        
+        if on_error is not None:
+            self.on_error = to_expr(on_error)
+        
+        if on_null is not None:
+            self.on_null = to_expr(on_null)
 
     @property
     def repr_value(self):

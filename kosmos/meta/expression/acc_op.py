@@ -52,16 +52,7 @@ class Last(AccOpExpression):
             "$last": self.input
         }
 
-class ArrayElemAt(AccOpExpression):
-    def __init__(self, input: Any, index: int) -> None:
-        self.input = to_expr(input)
-        self.index = index
-
-    @property
-    def repr_value(self):
-        return {
-            "$arrayElemAt": [self.input, self.index]
-        }
+from kosmos.meta.expression.op import ArrayElemAt
 
 class Sum(AccOpExpression):
     def __init__(self, input: Any) -> None:

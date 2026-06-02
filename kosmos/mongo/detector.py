@@ -18,7 +18,7 @@ from typing import Self
 from kosmos.matter.observable import Observable
 from typing import Type, List
 from kosmos.mongo.collection import MongoCollection
-from kosmos.meta.expression.aggregation import AggregationStages
+from kosmos.meta.expression.aggregation import Aggregation
 from kosmos.meta.model import Model
 from pymongoarrow.api import ( #type: ignore
     Schema,  Table,
@@ -45,10 +45,10 @@ class WhenNotMatchedAction(StrEnum):
 class MongoDetector[T: Model](MongoCollection):
     def __init__(self, meta_state: MetaState, obj_type: Type[T]):
         super().__init__(meta_state)
-        self._aggregation_expr: AggregationStages = AggregationStages()
+        self._aggregation_expr: Aggregation = Aggregation()
         self._persist_cls = obj_type
 
-    def _new_agg(self, agg: AggregationStages | None = None) -> Self:
+    def _new_agg(self, agg: Aggregation | None = None) -> Self:
         if agg is None:
             agg = self._aggregation_expr
 
@@ -170,7 +170,7 @@ class MongoDetector[T: Model](MongoCollection):
         
         return GroupDetector[T](self, combined)
     
-    def agg(self, aggregation: AggregationStages) -> Self:
+    def agg(self, aggregation: Aggregation) -> Self:
         """
         Adds an aggregation pipeline to the query.
 
@@ -203,7 +203,7 @@ class MongoDetector[T: Model](MongoCollection):
             id = ObjectId(id)
         return self.filter(QueryableField("id") == id).load_one()
 
-    def exec_agg(self, post_agg: Optional[AggregationStages] = None):
+    def exec_agg(self, post_agg: Optional[Aggregation] = None):
         """
         Performs an aggregation query on the model's collection.
 
@@ -218,7 +218,7 @@ class MongoDetector[T: Model](MongoCollection):
         assert isinstance(collection, Collection)
         return collection.aggregate(self._get_pipeline_expr(post_agg))
 
-    def load_agg(self, post_agg: Optional[AggregationStages] = None) -> list[T]:
+    def load_agg(self, post_agg: Optional[Aggregation] = None) -> list[T]:
         """
         Executes an aggregation and returns the results as a list of models.
 
@@ -240,7 +240,7 @@ class MongoDetector[T: Model](MongoCollection):
         Returns:
             Optional[T]: An instance of the model, or `None` if no document is found.
         """
-        docs = self.load_agg(AggregationStages().limit(1))
+        docs = self.load_agg(Aggregation().limit(1))
         return docs[0] if len(docs) > 0 else None
 
     def load_many(self) -> list[T]:
@@ -262,7 +262,7 @@ class MongoDetector[T: Model](MongoCollection):
         Returns:
             Optional[T]: An instance of the loaded document, or `None` if not found.
         """
-        docs = self.load_agg(AggregationStages().sort(sort).limit(1))
+        docs = self.load_agg(Aggregation().sort(sort).limit(1))
         return docs[0] if len(docs) > 0 else None
 
     def merge_into(self, collection_name: str, on: List[str], when_matched: WhenMatchedAction = WhenMatchedAction.REPLACE, when_not_matched: WhenNotMatchedAction = WhenNotMatchedAction.INSERT):
@@ -281,7 +281,7 @@ class MongoDetector[T: Model](MongoCollection):
         Returns:
             bool: `True` if a matching document exists, `False` otherwise.
         """
-        docs = self.load_agg(AggregationStages().limit(1))
+        docs = self.load_agg(Aggregation().limit(1))
         return len(docs) > 0
     
     def load_table(self, schema: Optional[Schema] = None) -> Table:
@@ -324,11 +324,11 @@ class MongoDetector[T: Model](MongoCollection):
         collection = self.get_collection()
         return aggregate_polars_all(collection, pipeline=self._get_pipeline_expr(), schema=Schema(schema) if schema else None)
 
-    async def exec_agg_async(self, post_agg: Optional[AggregationStages] = None):
+    async def exec_agg_async(self, post_agg: Optional[Aggregation] = None):
         collection = self.get_collection_async()
         return await collection.aggregate(self._get_pipeline_expr(post_agg))
 
-    async def load_agg_async(self, post_agg: Optional[AggregationStages] = None):
+    async def load_agg_async(self, post_agg: Optional[Aggregation] = None):
         p_cls = self._persist_cls
         cursor = await self.exec_agg_async(post_agg)
         async with cursor:
@@ -336,14 +336,14 @@ class MongoDetector[T: Model](MongoCollection):
                 yield p_cls.from_doc(doc)
 
     async def load_one_async(self) -> Optional[T]:
-        async for doc in self.load_agg_async(AggregationStages().limit(1)):
+        async for doc in self.load_agg_async(Aggregation().limit(1)):
             return doc
     
     async def load_many_async(self) -> list[T]:
         return [doc async for doc in self.load_agg_async()]
 
     async def load_top_async(self, sort: SortOp = SortDesc("updated_time")):
-        async for doc in self.load_agg_async(AggregationStages().sort(sort).limit(1)):
+        async for doc in self.load_agg_async(Aggregation().sort(sort).limit(1)):
             return doc
     
     async def merge_into_async(self, collection_name: str, on: List[str], when_matched: WhenMatchedAction = WhenMatchedAction.REPLACE, when_not_matched: WhenNotMatchedAction = WhenNotMatchedAction.INSERT):
@@ -359,7 +359,7 @@ class MongoDetector[T: Model](MongoCollection):
         doc = await self.load_one_async()
         return doc is not None
 
-    def get_op_stages(self) -> AggregationStages:
+    def get_op_stages(self) -> Aggregation:
         return self._aggregation_expr
 
     def _load_dataframe_legacy(
@@ -386,7 +386,7 @@ class MongoDetector[T: Model](MongoCollection):
     def _get_expression_driver(self) -> ExpressionDriver:
         return ExpressionDriver(self.get_model_fields())
 
-    def _get_pipeline_expr(self, post_agg: Optional[AggregationStages] = None) -> list[dict]:
+    def _get_pipeline_expr(self, post_agg: Optional[Aggregation] = None) -> list[dict]:
         pipelines = (self._aggregation_expr | post_agg)
         flattened_pipelines =pipelines.express(self._get_expression_driver())
         assert isinstance(flattened_pipelines, list)
@@ -409,7 +409,7 @@ class GroupDetector[T: Model]:
                 combined |= accumulator
         
         if combined is not None:
-            group_agg = AggregationStages().group(self.group_expression.with_acc(combined))
+            group_agg = Aggregation().group(self.group_expression.with_acc(combined))
             return self._base_directive.agg(group_agg)
         
         return self._base_directive

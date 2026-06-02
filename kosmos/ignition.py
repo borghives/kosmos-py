@@ -1,4 +1,5 @@
-from .space import must_have_observer_client
+from .mongo import summon_mongo, PurposeAffinity
+
 from dotenv import load_dotenv
 from kosmos import ether
 import logging
@@ -20,4 +21,19 @@ def ignite(*sources: str):
 
     must_have_observer_client()
 
-        
+def must_have_observer_client():
+    data = summon_mongo(PurposeAffinity.Observer)
+    if data is None:
+        raise Exception("Failed to summon mongo observer client")
+    
+    client = data.sync_client()
+
+    try:
+        # The 'ping' command is cheap and does not require authentication privileges
+        client.admin.command('ping')
+        logger.info("MongoDB connection successful!")
+    except Exception as e:
+        logger.fatal(f"Could not connect and ping to MongoDB: {e}")
+        raise e
+    
+    return client

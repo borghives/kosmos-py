@@ -29,7 +29,7 @@ from kosmos.meta.expression.query import (
     Ne,
     Eq,
     NotAll,
-    NotIn,
+    Nin,
     TimeQuery,
     QueryOpExpression,
 )
@@ -123,7 +123,7 @@ class QueryableField:
             return QueryPredicates()
         input=self.normalize_literal_input(literal_input)
         assert isinstance(input, list)
-        return self.predicate(NotIn(input))
+        return self.predicate(Nin(input))
     
     def is_all(self, literal_input) -> QueryPredicates:
         if literal_input is None:
