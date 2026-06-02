@@ -1,5 +1,4 @@
 from kosmos.ether.universal import UniversalConstants
-from kosmos.ether.mongo import MongoConstants
 from kosmos.ether.secret import (
     is_secret_source_format,
     collapse_secret_source,
@@ -9,7 +8,6 @@ from kosmos.ether.secret import (
 
 __all__ = [
     "UniversalConstants",
-    "MongoConstants",
     "is_secret_source_format",
     "collapse_secret_source",
     "collapse_secret_string",

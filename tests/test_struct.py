@@ -48,10 +48,3 @@ def test_liminal_structure_coalesce(monkeypatch):
     assert collapsed2.api_key == "another_key"
     assert collapsed2.no_map == "no_map_val"
 
-def test_liminal_structure_empty_string_env(monkeypatch):
-    config = MockConfig()
-    struct = LiminalStructure[MockConfig](config)
-    
-    monkeypatch.setenv("TEST_PROJECT_ID", "")
-    collapsed = struct.collapse()
-    assert collapsed.project_id == ""

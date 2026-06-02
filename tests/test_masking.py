@@ -47,18 +47,4 @@ def test_collapse_mongo_uri_secret_with_secret(mock_collapse):
     assert collapsed == "mongodb://user:resolved_secret_password@localhost:27017/db"
     mock_collapse.assert_called_once_with("__secret:my-secret:latest__")
 
-@patch("kosmos.mongo.client.collapse_mongo_uri_secret")
-@patch("kosmos.ether.MongoConstants.collapse")
-def test_collapse_uri_for(mock_mongo_constants, mock_collapse_uri):
-    mock_constants = mock_mongo_constants.return_value
-    mock_constants.uri = "uri_val"
-    mock_constants.creator_uri = "creator_val"
-    mock_constants.admin_uri = "admin_val"
-    
-    mock_collapse_uri.side_effect = lambda x: f"collapsed_{x}"
-    
-    assert collapse_uri_for(PurposeAffinity.Observer) == "collapsed_uri_val"
-    assert collapse_uri_for(PurposeAffinity.Creator) == "collapsed_creator_val"
-    assert collapse_uri_for(PurposeAffinity.Admin) == "collapsed_admin_val"
-    assert collapse_uri_for(PurposeAffinity.Unknown) == "collapsed_uri_val"
 

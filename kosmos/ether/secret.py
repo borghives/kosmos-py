@@ -1,4 +1,4 @@
-from kosmos.ether import UniversalConstants
+from .universal import UniversalConstants
 from dataclasses import dataclass, field
 from typing import Protocol
 from google.cloud import secretmanager

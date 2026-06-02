@@ -4,6 +4,7 @@ import asyncio
 import threading
 from pymongo import AsyncMongoClient, MongoClient
 from abc import ABC
+from .constants import MongoConstants
 
 import logging
 logger = logging.getLogger(__name__)
@@ -102,7 +103,7 @@ def collapse_mongo_uri_secret(uri: str) -> str:
 
 
 def collapse_uri_for(purpose: PurposeAffinity) -> str:
-    constants = ether.MongoConstants.collapse()
+    constants = MongoConstants.collapse()
     match purpose:
         case PurposeAffinity.Observer:
             logger.info("Using URI from MONGODB_URI")

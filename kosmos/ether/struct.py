@@ -3,9 +3,9 @@ from dataclasses import dataclass
 import os
 
 class MapStruct:
-    def __init__(self, key: str, permeate: bool = False):
+    def __init__(self, key: str, reducible: bool = False):
         self.key = key
-        self.permeate = permeate
+        self.reducible = reducible
 
 def get_map_structs(cls) -> Dict[str, MapStruct]:
     type_hints = get_type_hints(cls, include_extras=True)
@@ -27,7 +27,15 @@ class LiminalStructure[T]:
     def coalesce(self):
         for key, map_struct in get_map_structs(type(self.constants)).items():
             if os.getenv(map_struct.key) is not None:
-                setattr(self.constants, key, os.getenv(map_struct.key))
+                value = os.getenv(map_struct.key)
+                if value:
+                    setattr(self.constants, key, value)
+                    if map_struct.reducible:
+                        if hasattr(self.constants, "reduce"):
+                            self.constants.reduce(key, value)
+                        else:
+                            raise ValueError(f"Field {key} is marked as reducible but {type(self.constants)} does not have a reduce method.")
+
     
     def collapse(self) -> T:
         if not self.has_coalesced:
