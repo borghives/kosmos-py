@@ -6,7 +6,7 @@ from kosmos import ether
 from kosmos import mongo
 from kosmos.meta.state import declare_persist_db
 from kosmos.meta.atomic import IncrCounter, IntCounter, ZeroCounter
-from kosmos.meta.annotation import RefreshOnSet, CoalesceOnInsert
+from kosmos.meta.annotation import RefreshOnSet, CoalesceOnInsert, StrUpper, StrLower
 from kosmos.meta.model import Model
 from kosmos.matter.particle import ParticleBase
 from kosmos.matter.blob import BlobBase
@@ -53,4 +53,6 @@ __all__ = [
     "record_async",
     "IntCounter",
     "ZeroCounter",
+    "StrUpper",
+    "StrLower",
 ]
