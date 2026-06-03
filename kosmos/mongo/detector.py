@@ -309,7 +309,7 @@ class MongoDetector[T: Model](MongoCollection):
         collection = self.get_collection()
         return aggregate_pandas_all(collection, pipeline=self._get_pipeline_expr(), schema=Schema(schema) if schema else None)
 
-    def load_polars(self, schema: Optional[dict] = None) -> pl.DataFrame | pl.Series:
+    def load_polars(self, schema: Optional[dict] = None) -> pl.DataFrame:
         """
         Loads data from a query into a polars DataFrame.
 
@@ -317,10 +317,12 @@ class MongoDetector[T: Model](MongoCollection):
             schema (Schema, optional): The PyArrow schema to use.
 
         Returns:
-            pl.DataFrame | pl.Series: A polars DataFrame or Series containing the loaded data.
+            pl.DataFrame: A polars DataFrame containing the loaded data.
         """
         collection = self.get_collection()
-        return aggregate_polars_all(collection, pipeline=self._get_pipeline_expr(), schema=Schema(schema) if schema else None)
+        df = aggregate_polars_all(collection, pipeline=self._get_pipeline_expr(), schema=Schema(schema) if schema else None)
+        assert isinstance(df, pl.DataFrame)
+        return df
 
     async def exec_agg_async(self, post_agg: Optional[Aggregation] = None):
         collection = self.get_collection_async()
