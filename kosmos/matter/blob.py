@@ -10,7 +10,6 @@ import io
 
 class BlobBase(ParticleBase):
     filename: str       = Field(default="")
-    metadata: dict|None = Field(default=None)
     # GridFS metadata fields (populated from database, ignored during creation/upload)
     length: Optional[int] = Field(default=None, alias="length")
     chunk_size: Optional[int] = Field(default=None, alias="chunkSize")
@@ -27,10 +26,11 @@ class BlobBase(ParticleBase):
         return self.filename
 
     def dump_metadata(self) -> Optional[dict]:
-        if self.metadata:
-            if isinstance(self.metadata, BaseModel):
-                return self.metadata.model_dump(by_alias=True, exclude_none=True)
-            return self.metadata
+        if hasattr(self, "metadata"):
+            if self.metadata:
+                if isinstance(self.metadata, BaseModel):
+                    return self.metadata.model_dump(by_alias=True, exclude_none=True)
+                return self.metadata
 
         return None
 
