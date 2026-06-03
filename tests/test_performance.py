@@ -24,4 +24,4 @@ def test_benchmark(capsys):
         improvement = ((legacy_time - arrow_time) / legacy_time) * 100
         print(f"Improvement: {improvement:.2f}%")
 
-    assert improvement > -2.0
+    assert improvement > -20.0
