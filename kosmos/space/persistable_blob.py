@@ -1,4 +1,5 @@
 from kosmos.meta.expression.filter import QueryPredicates
+from kosmos.meta.expression.field import QueryableField
 from kosmos.mongo.collection import MongoCollection
 from kosmos.matter.blob import BlobBase
 from .detector import detect
@@ -11,6 +12,10 @@ class PersistableBlob(BlobBase):
         if filter is not None:
             detector = detector.filter(filter)
         return detector
+
+    @classmethod
+    def from_filename(cls, filename: str):
+        return cls.detect(QueryableField("filename") == filename).load_one()
 
     @classmethod
     def recorder(cls):
