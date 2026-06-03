@@ -1,5 +1,7 @@
+from bson import ObjectId
 from pydantic import Field
 from kosmos.meta.expression.filter import QueryPredicates
+from kosmos.meta.expression.field import QueryableField
 from kosmos.meta.annotation import TimeInserted, TimeUpdated
 from kosmos.matter.particle import ParticleBase
 from .detector import detect
@@ -22,6 +24,14 @@ class Persistable(ParticleBase):
         if filter is not None:
             detector = detector.filter(filter)
         return detector
+
+    @classmethod
+    def from_id(cls, id: ObjectId | str):
+        if isinstance(id, str):
+            if not ObjectId.is_valid(id):
+                return None
+            id = ObjectId(id)
+        return cls.detect(QueryableField("_id") == id).load_one()
 
     @classmethod
     def recorder(cls):
