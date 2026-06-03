@@ -2,6 +2,7 @@ from kosmos.meta.expression.filter import QueryPredicates
 from kosmos.meta.expression.field import QueryableField
 from kosmos.mongo.collection import MongoCollection
 from kosmos.matter.blob import BlobBase
+from bson import ObjectId
 from .detector import detect
 from .recorder import recorder
 
@@ -16,6 +17,14 @@ class PersistableBlob(BlobBase):
     @classmethod
     def from_filename(cls, filename: str):
         return cls.detect(QueryableField("filename") == filename).load_one()
+
+    @classmethod
+    def from_id(cls, id: ObjectId | str):
+        if isinstance(id, str):
+            if not ObjectId.is_valid(id):
+                return None
+            id = ObjectId(id)
+        return cls.detect(QueryableField("_id") == id).load_one()
 
     @classmethod
     def recorder(cls):
