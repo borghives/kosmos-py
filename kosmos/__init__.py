@@ -1,6 +1,6 @@
 from kosmos.meta.expression.base import LiteralInput
 from kosmos.meta.expression.base import FieldPath
-from kosmos.meta.expression.field import QueryableField
+from kosmos.meta.expression.field import QueryableField, QueryPredicates
 from kosmos.ignition import ignite_base, ignite, must_have_observer_client
 from kosmos import ether
 from kosmos import mongo
@@ -43,6 +43,7 @@ __all__ = [
     "ParticleBase",
     "Persistable",
     "PersistableBlob",
+    "QueryPredicates",
     "Ledger",
     "BlobBase",
     "IncrCounter",
