@@ -26,6 +26,7 @@ from pymongoarrow.api import ( #type: ignore
 ) 
 import pandas as pd
 import polars as pl
+import rich
 
 
 class WhenMatchedAction(StrEnum):
@@ -213,7 +214,6 @@ class MongoDetector[T: Model](MongoCollection):
             CommandCursor: A `pymongo` cursor to the results of the aggregation.
         """
         collection = self.get_collection()
-        assert isinstance(collection, Collection)
         return collection.aggregate(self._get_pipeline_expr(post_agg))
 
     def load_agg(self, post_agg: Optional[Aggregation] = None) -> list[T]:
@@ -389,6 +389,7 @@ class MongoDetector[T: Model](MongoCollection):
     def _get_pipeline_expr(self, post_agg: Optional[Aggregation] = None) -> list[dict]:
         pipelines = (self._aggregation_expr | post_agg)
         flattened_pipelines =pipelines.express(self._get_expression_driver())
+        rich.print(flattened_pipelines)
         assert isinstance(flattened_pipelines, list)
         return flattened_pipelines
 

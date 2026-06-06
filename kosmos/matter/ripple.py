@@ -17,6 +17,7 @@ class Ripple:
     state : RippleState = RippleState.Unobservable
     exprs : dict[str, Any] = field(default_factory=dict)
     doc : dict[str, Any] | None = None
+    after_doc: Any | None = None
     interstitial : dict[str, Any] = field(default_factory=dict)
     blob_to_upload: io.BytesIO | None = None
     insert_feedback : InsertOneResult | None = None
@@ -32,7 +33,8 @@ class Ripple:
     def set_id(self, id: ObjectId | None):
         self.id = id
 
-    def set_scope(self, scope: dict):
+    def set_scope(self, id: ObjectId | None, scope: dict):
+        self.set_id(id)
         if len(scope) == 0:
             if self.id is None:
                 self.id = ObjectId()
@@ -48,7 +50,11 @@ class Ripple:
     def get_final_id(self):
         if self.insert_feedback is not None:
             return self.insert_feedback.inserted_id
-        elif self.update_feedback is not None:
+        
+        if self.after_doc is not None:
+            return self.after_doc.get('_id')
+
+        if self.update_feedback is not None:
             if self.update_feedback.upserted_id is not None:
                 return self.update_feedback.upserted_id
 

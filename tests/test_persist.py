@@ -37,6 +37,15 @@ class TestIncModel(km.Persistable):
     counter: km.IncrCounter  = Field(description="An incrementing integer counter", default=km.ZeroCounter)
     counter2: km.IncrCounter = Field(description="An incrementing integer counter", default=km.ZeroCounter)
 
+@km.declare_persist_db(db_name="test_db", collection_name="test_custom_scope", version=1)
+class CustomScopeModel(ParticleBase):
+    __test__ = False
+    name: str
+    value: int
+    
+    def self_scope(self) -> dict:
+        return {"name": self.name}
+
 def test_has_update_logic():
     # 1. Test new model
     new_model = TestModel(name="new", value=1)
@@ -305,3 +314,79 @@ def test_load_dataframe():
 
     # Clean up
     collection.delete_many({})
+
+def test_update_without_id_in_scope():
+    # Clean up previous runs
+    recorder = km.recorder(CustomScopeModel)
+    collection = recorder.get_collection()
+    collection.delete_many({})
+
+    # 1. Insert/Upsert new model via custom scope (which has no _id)
+    obj = CustomScopeModel(name="test_scope_obj", value=100)
+    assert obj.id is None
+    
+    km.record(obj)
+    assert obj.id is not None
+    assert isinstance(obj.id, ObjectId)
+
+    # Verify database state
+    db_doc = collection.find_one({"_id": obj.id})
+    assert db_doc is not None
+    assert db_doc["name"] == "test_scope_obj"
+    assert db_doc["value"] == 100
+
+    # 2. Update existing model via another instance with the same custom scope (still no _id in the second instance)
+    obj2 = CustomScopeModel(name="test_scope_obj", value=200)
+    assert obj2.id is None
+    
+    km.record(obj2)
+    # The record should update the existing document and populate obj2.id with the same _id
+    assert obj2.id == obj.id
+
+    # Verify updated database state
+    db_doc_updated = collection.find_one({"_id": obj.id})
+    assert db_doc_updated is not None
+    assert db_doc_updated["value"] == 200
+
+    # Clean up
+    collection.delete_many({})
+
+def test_update_without_id_in_scope_async():
+    import asyncio
+    
+    async def run_async():
+        # Clean up previous runs
+        recorder = km.recorder(CustomScopeModel)
+        collection = recorder.get_collection_async()
+        await collection.delete_many({})
+
+        # 1. Insert/Upsert new model via custom scope (no _id)
+        obj = CustomScopeModel(name="test_scope_obj_async", value=100)
+        assert obj.id is None
+        
+        await km.record_async(obj)
+        assert obj.id is not None
+        assert isinstance(obj.id, ObjectId)
+
+        # Verify database state
+        db_doc = await collection.find_one({"_id": obj.id})
+        assert db_doc is not None
+        assert db_doc["name"] == "test_scope_obj_async"
+        assert db_doc["value"] == 100
+
+        # 2. Update existing model via another instance (no _id)
+        obj2 = CustomScopeModel(name="test_scope_obj_async", value=200)
+        assert obj2.id is None
+        
+        await km.record_async(obj2)
+        assert obj2.id == obj.id
+
+        # Verify updated database state
+        db_doc_updated = await collection.find_one({"_id": obj.id})
+        assert db_doc_updated is not None
+        assert db_doc_updated["value"] == 200
+
+        # Clean up
+        await collection.delete_many({})
+
+    asyncio.run(run_async())

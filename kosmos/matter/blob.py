@@ -43,8 +43,7 @@ class BlobBase(ParticleBase):
         if ripple.state == RippleState.Unobservable:
             return ripple
 
-        ripple.set_id(self.id)
-        ripple.set_scope(self.self_scope())
+        ripple.set_scope(self.id, self.self_scope())
             
         metadata = self.dump_metadata()
         if metadata:

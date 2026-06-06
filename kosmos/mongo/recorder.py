@@ -1,7 +1,8 @@
 
+from kosmos.matter.ripple import Ripple
 from typing import Mapping, Optional, Type, Any
 from kosmos.mongo.collection import MongoCollection
-from pymongo import UpdateOne
+from pymongo import UpdateOne, ReturnDocument
 from pymongo.errors import BulkWriteError
 from bson import ObjectId
 from kosmos.meta.util import get_base_type
@@ -18,14 +19,6 @@ class MongoRecorder(MongoCollection):
     def __init__(self, obj_type: Type[Observable]):
         super().__init__(obj_type.get_meta_state())
 
-    def _upsert(self, scope: dict, update: dict):
-        collection = self.get_collection()
-        return collection.update_one(scope, update, upsert=True)
-
-    def _insert(self, doc):
-        collection = self.get_collection()
-        return collection.insert_one(doc)
-
     def _upload_blob(self, filename: str, blob: io.BytesIO | bytes, metadata: Optional[Mapping[str, Any]] = None, previous_id: ObjectId | None = None) -> ObjectId:
         gfs = self.get_gridfs()
         new_id = gfs.upload_from_stream(filename, blob, metadata=metadata)
@@ -41,26 +34,39 @@ class MongoRecorder(MongoCollection):
         except gridfs.errors.NoFile:
             pass
 
+    def _record_blob(self, ripple: Ripple, blob: io.BytesIO):
+        scope = ripple.get_scope()
+        filename = scope.get("filename")
+        assert filename and isinstance(filename, str), "Filename is required for blob upload"
+        metadata = ripple.get("metadata")
+        ripple.set_id(self._upload_blob(filename, blob, metadata, ripple.id))
+    
+    def _record_doc(self, ripple: Ripple):
+        scope = ripple.get_scope()
+        
+        collection = self.get_collection()
+        if ripple.is_stasis_mode():
+            ripple.insert_feedback = collection.insert_one(ripple.get_doc())
+        else:
+            update = ripple.get_update_instruction()
+            scope_id = scope.get('_id')
+            if scope_id is None:
+                ripple.after_doc = collection.find_one_and_update(scope, update, upsert=True, return_document=ReturnDocument.AFTER)
+            else:
+                ripple.update_feedback = collection.update_one(scope, update, upsert=True)
+    
     def record(self, obj: Observable):
         ripple = obj.collapse()
         if ripple.state == RippleState.Unobservable:
             raise ValueError("Failed to record: ripple state is unobservable.")
         
-        #NOTE!!: Early exit without the object Decohere[nce] at the end will keep the object in a transitional (INBETWEEN) state
-        scope = ripple.get_scope()
+        #NOTE!!: Early exit without the object Decohere[nce] at the end will keep the object in a transitional (INBETWEEN) sta
 
         blob = ripple.get_blob()
         if (blob is not None):
-            filename = scope.get("filename")
-            assert filename and isinstance(filename, str), "Filename is required for blob upload"
-            metadata = ripple.get("metadata")
-            ripple.set_id(self._upload_blob(filename, blob, metadata, ripple.id))
+            self._record_blob(ripple, blob)
         else:
-            if ripple.is_stasis_mode():
-                ripple.insert_feedback = self._insert(ripple.get_doc())
-            else:
-                update = ripple.get_update_instruction()
-                ripple.update_feedback = self._upsert(scope, update)
+            self._record_doc(ripple)
 
         obj.decohere(ripple)
     
@@ -194,14 +200,26 @@ class MongoRecorder(MongoCollection):
             await gfs.delete(file_id)
         except gridfs.errors.NoFile:
             pass
-
-    async def _upsert_async(self, scope: dict, update: dict):
-        collection = self.get_collection_async()
-        return await collection.update_one(scope, update, upsert=True)    
     
-    async def _insert_async(self, doc):
+    async def _record_blob_async(self, ripple: Ripple, blob: io.BytesIO):
+        scope = ripple.get_scope()
+        filename = scope.get("filename")
+        assert filename and isinstance(filename, str), "Filename is required for blob upload"
+        metadata = ripple.get("metadata")
+        ripple.set_id(await self._upload_blob_async(filename, blob, metadata, ripple.id))
+    
+    async def _record_doc_async(self, ripple: Ripple):
+        scope = ripple.get_scope()
         collection = self.get_collection_async()
-        return await collection.insert_one(doc)
+        if ripple.is_stasis_mode():
+            ripple.insert_feedback = await collection.insert_one(ripple.get_doc())
+        else:
+            update = ripple.get_update_instruction()
+            scope_id = scope.get('_id')
+            if scope_id is None:
+                ripple.after_doc = await collection.find_one_and_update(scope, update, upsert=True, return_document=ReturnDocument.AFTER)
+            else:
+                ripple.update_feedback = await collection.update_one(scope, update, upsert=True)
 
     async def record_async(self, obj: Observable):
         ripple = obj.collapse()
@@ -209,19 +227,11 @@ class MongoRecorder(MongoCollection):
             raise ValueError("Failed to record: ripple state is unobservable.")
         
         #NOTE!!: Early exit without the object Decohere[nce] at the end will keep the object in a transitional (INBETWEEN) state
-        scope = ripple.get_scope()
         blob = ripple.get_blob()
         if (blob is not None):
-            filename = scope.get("filename")
-            assert filename and isinstance(filename, str), "Filename is required for blob upload"
-            metadata = ripple.get("metadata")
-            ripple.set_id(await self._upload_blob_async(filename, blob, metadata, ripple.id))
+            await self._record_blob_async(ripple, blob)
         else:
-            if ripple.is_stasis_mode():
-                ripple.insert_feedback = await self._insert_async(ripple.get_doc())
-            else:
-                update = ripple.get_update_instruction()
-                ripple.update_feedback = await self._upsert_async(scope, update)
+            await self._record_doc_async(ripple)
 
         obj.decohere(ripple)
     

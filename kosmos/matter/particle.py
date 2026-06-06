@@ -86,8 +86,7 @@ class ParticleBase(Model):
         if ripple.state == RippleState.Unobservable:
             return ripple
 
-        ripple.set_id(self.id)
-        ripple.set_scope(self.self_scope())
+        ripple.set_scope(self.id, self.self_scope())
             
         doc = self.dump_doc()
         for field, transformers in self.get_fields_with_metadata(RefreshOnSet).items():
@@ -148,8 +147,7 @@ class Stasion(ParticleBase):
         if ripple.state == RippleState.Unobservable:
             return ripple
 
-        ripple.set_id(self.id)
-        ripple.set_scope(self.self_scope())
+        ripple.set_scope(self.id, self.self_scope())
 
         self.coalesce_fields_for(RefreshOnSet)
         self.coalesce_fields_for(CoalesceOnInsert)
